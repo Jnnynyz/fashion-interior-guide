@@ -1,0 +1,16 @@
+project_id = "jjsmiryavfgkvgdshzeq"
+
+[functions.analyze-image]
+verify_jwt = false
+
+[functions.generate-after-image]
+verify_jwt = false
+
+[functions.payments-webhook]
+verify_jwt = false
+
+[functions.get-paddle-price]
+verify_jwt = false
+
+[functions.create-checkout]
+verify_jwt = true

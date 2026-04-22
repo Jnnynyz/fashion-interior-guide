@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Plus, Minus, ArrowLeft, Trash2, Sparkles, RotateCw } from "lucide-react";
+import { Plus, Minus, ArrowLeft, Trash2, Sparkles, RotateCw, Download } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Skeleton } from "@/components/ui/skeleton";

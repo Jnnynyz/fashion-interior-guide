@@ -28,7 +28,7 @@ function Index() {
     <AppShell>
       <section className="pt-6 pb-12">
         <p className="text-[11px] uppercase tracking-[0.28em] text-accent mb-5">
-          Quiet styling, refined
+          Styling, refined
         </p>
         <h1 className="font-display text-5xl sm:text-6xl leading-[1.02] text-balance">
           What's missing

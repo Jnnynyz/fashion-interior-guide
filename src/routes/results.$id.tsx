@@ -157,8 +157,8 @@ function ResultsPage() {
       </div>
 
       <div className="mt-4 rounded-3xl overflow-hidden bg-card border border-border/60 shadow-soft">
-        <div className="aspect-[4/5] bg-muted relative">
-          <img src={beforeUrl} alt="Your upload" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="aspect-[4/5] bg-muted relative overflow-hidden">
+          <img src={beforeUrl} alt="Your upload" style={{ imageOrientation: "from-image" }} className="absolute inset-0 h-full w-full object-cover" />
           {data.score !== null && (
             <div className="absolute top-3 right-3 bg-background/90 backdrop-blur rounded-full px-3 py-1.5 text-xs">
               <span className="text-muted-foreground">Score </span>

@@ -205,7 +205,7 @@ function ResultsPage() {
         <div className="mt-4 rounded-3xl overflow-hidden bg-card border border-border/60 shadow-soft">
           {data.after_image_url ? (
             <>
-              <div className="grid grid-cols-2 gap-px bg-border/60">
+              <div className="grid grid-cols-1 gap-px bg-border/60 sm:grid-cols-2">
                 <figure className="bg-card flex flex-col">
                   <div className="aspect-[4/5] bg-muted relative overflow-hidden">
                     <img

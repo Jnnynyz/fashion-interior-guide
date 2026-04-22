@@ -254,13 +254,21 @@ function ResultsPage() {
               </div>
               <div className="p-4 flex items-center justify-between">
                 <p className="text-xs text-muted-foreground">An AI visualization — not a real photo.</p>
-                <button
-                  onClick={onGenerateAfter}
-                  disabled={generatingAfter}
-                  className="text-xs uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5"
-                >
-                  <RotateCw className="h-3 w-3" /> Redo
-                </button>
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={onDownloadAfter}
+                    className="text-xs uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5"
+                  >
+                    <Download className="h-3 w-3" /> Save
+                  </button>
+                  <button
+                    onClick={onGenerateAfter}
+                    disabled={generatingAfter}
+                    className="text-xs uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5"
+                  >
+                    <RotateCw className="h-3 w-3" /> Redo
+                  </button>
+                </div>
               </div>
             </>
           ) : generatingAfter ? (

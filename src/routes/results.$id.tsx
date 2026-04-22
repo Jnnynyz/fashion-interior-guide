@@ -244,15 +244,15 @@ function ResultsPage() {
                   <figcaption className="text-[10px] uppercase tracking-[0.22em] text-accent text-center py-2">After</figcaption>
                 </figure>
               </div>
-              <div className="p-4 flex items-center justify-between">
-                <p className="text-xs text-muted-foreground">An AI visualization — not a real photo.</p>
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={onDownloadAfter}
-                    className="text-xs uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5"
-                  >
-                    <Download className="h-3 w-3" /> Save
-                  </button>
+              <div className="p-4 space-y-3">
+                <button
+                  onClick={onDownloadAfter}
+                  className="w-full inline-flex items-center justify-center gap-2 h-12 rounded-full bg-primary text-primary-foreground font-medium tracking-wide shadow-soft hover:opacity-90 transition"
+                >
+                  <Download className="h-4 w-4" /> Save to camera roll
+                </button>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground">An AI visualization — not a real photo.</p>
                   <button
                     onClick={onGenerateAfter}
                     disabled={generatingAfter}

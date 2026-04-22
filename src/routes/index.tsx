@@ -28,7 +28,7 @@ function Index() {
     <AppShell>
       <section className="pt-6 pb-12">
         <p className="text-[11px] uppercase tracking-[0.28em] text-accent mb-5">
-          Quiet styling, refined
+          Styling, refined
         </p>
         <h1 className="font-display text-5xl sm:text-6xl leading-[1.02] text-balance">
           What's missing
@@ -73,7 +73,7 @@ function Index() {
 
       <section className="mt-10 rounded-3xl bg-card p-6 sm:p-8 shadow-soft border border-border/60">
         <Sparkles className="h-4 w-4 text-accent" />
-        <h2 className="font-display text-2xl mt-3">Three quiet steps</h2>
+        <h2 className="font-display text-2xl mt-3">Three easy steps</h2>
         <ol className="mt-5 space-y-4 text-sm">
           {[
             "Choose outfit or interior.",

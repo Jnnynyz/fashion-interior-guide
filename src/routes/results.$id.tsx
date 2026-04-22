@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Plus, Minus, ArrowLeft, Trash2, Sparkles, RotateCw } from "lucide-react";
+import { Plus, Minus, ArrowLeft, Trash2, Sparkles, RotateCw, Download } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -123,6 +123,26 @@ function ResultsPage() {
     }
   };
 
+  const onDownloadAfter = async () => {
+    const url = afterUrl || data?.after_image_url;
+    if (!url) return;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Could not fetch image");
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = objectUrl;
+      a.download = `whats-missing-after-${data?.id ?? "image"}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Download failed");
+    }
+  };
+
   if (fetching) {
     return (
       <AppShell>
@@ -234,13 +254,21 @@ function ResultsPage() {
               </div>
               <div className="p-4 flex items-center justify-between">
                 <p className="text-xs text-muted-foreground">An AI visualization — not a real photo.</p>
-                <button
-                  onClick={onGenerateAfter}
-                  disabled={generatingAfter}
-                  className="text-xs uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5"
-                >
-                  <RotateCw className="h-3 w-3" /> Redo
-                </button>
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={onDownloadAfter}
+                    className="text-xs uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5"
+                  >
+                    <Download className="h-3 w-3" /> Save
+                  </button>
+                  <button
+                    onClick={onGenerateAfter}
+                    disabled={generatingAfter}
+                    className="text-xs uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5"
+                  >
+                    <RotateCw className="h-3 w-3" /> Redo
+                  </button>
+                </div>
               </div>
             </>
           ) : generatingAfter ? (

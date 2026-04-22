@@ -123,6 +123,26 @@ function ResultsPage() {
     }
   };
 
+  const onDownloadAfter = async () => {
+    const url = afterUrl || data?.after_image_url;
+    if (!url) return;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Could not fetch image");
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = objectUrl;
+      a.download = `whats-missing-after-${data?.id ?? "image"}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Download failed");
+    }
+  };
+
   if (fetching) {
     return (
       <AppShell>

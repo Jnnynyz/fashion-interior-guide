@@ -206,15 +206,25 @@ function ResultsPage() {
           {data.after_image_url ? (
             <>
               <div className="grid grid-cols-2 gap-px bg-border/60">
-                <figure className="bg-card">
-                  <div className="aspect-[4/5] bg-muted relative">
-                    <img src={beforeUrl} alt="Before" className="absolute inset-0 h-full w-full object-cover" />
+                <figure className="bg-card flex flex-col">
+                  <div className="aspect-[4/5] bg-muted relative overflow-hidden">
+                    <img
+                      src={beforeUrl}
+                      alt="Before"
+                      style={{ imageOrientation: "from-image" }}
+                      className="absolute inset-0 h-full w-full object-contain"
+                    />
                   </div>
                   <figcaption className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground text-center py-2">Before</figcaption>
                 </figure>
-                <figure className="bg-card">
-                  <div className="aspect-[4/5] bg-muted relative">
-                    <img src={afterUrl || data.after_image_url || ""} alt="After" className="absolute inset-0 h-full w-full object-cover" />
+                <figure className="bg-card flex flex-col">
+                  <div className="aspect-[4/5] bg-muted relative overflow-hidden">
+                    <img
+                      src={afterUrl || data.after_image_url || ""}
+                      alt="After"
+                      style={{ imageOrientation: "from-image" }}
+                      className="absolute inset-0 h-full w-full object-contain"
+                    />
                     <div className="absolute top-2 right-2 bg-background/90 backdrop-blur rounded-full px-2 py-0.5 text-[10px] inline-flex items-center gap-1">
                       <Sparkles className="h-2.5 w-2.5 text-accent" /> AI
                     </div>

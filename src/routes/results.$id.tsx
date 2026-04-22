@@ -6,6 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { getDisplayImageUrl, saveGeneratedImage } from "@/lib/images";
 import { getSignedImageUrl } from "@/lib/storage";
 
 type Item = { title: string; reason: string };
@@ -64,7 +65,7 @@ function ResultsPage() {
       }
       if (a?.after_image_path) {
         const u = await getSignedImageUrl(a.after_image_path);
-        if (u) setAfterUrl(u);
+        if (u) setAfterUrl(await getDisplayImageUrl(u, { rotateLandscapePortrait: a.category === "outfit" }));
       }
       setFetching(false);
     })();
@@ -113,7 +114,7 @@ function ResultsPage() {
         toast.error("No image returned. Please try again.");
         return;
       }
-      setAfterUrl(url);
+      setAfterUrl(await getDisplayImageUrl(url, { rotateLandscapePortrait: data.category === "outfit" }));
       setData({ ...data, after_image_url: url, after_image_path: data.after_image_path ?? `${user?.id}/${data.id}-after.png` });
       toast.success("After photo ready.");
     } catch (e) {
@@ -127,17 +128,8 @@ function ResultsPage() {
     const url = afterUrl || data?.after_image_url;
     if (!url) return;
     try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Could not fetch image");
-      const blob = await res.blob();
-      const objectUrl = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = objectUrl;
-      a.download = `whats-missing-after-${data?.id ?? "image"}.png`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(objectUrl);
+      const method = await saveGeneratedImage(url, `whats-missing-after-${data?.id ?? "image"}.png`);
+      toast.success(method === "camera-roll" ? "Saved to camera roll." : "Downloaded.");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Download failed");
     }

@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { useEntitlement } from "@/hooks/useEntitlement";
 import { getPaymentsEnv } from "@/lib/paddle";
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeImageFile } from "@/lib/images";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/upload")({
@@ -51,7 +52,7 @@ function UploadPage() {
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
-  const onPick = (f: File | null) => {
+  const onPick = async (f: File | null) => {
     if (!f) return;
     if (!f.type.startsWith("image/")) {
       toast.error("Please choose an image file.");
@@ -61,14 +62,15 @@ function UploadPage() {
       toast.error("Image must be under 10MB.");
       return;
     }
-    setFile(f);
+    const normalized = await normalizeImageFile(f);
+    setFile(normalized);
   };
 
   const analyze = async () => {
     if (!file || !user) return;
     setBusy(true);
     try {
-      const ext = file.name.split(".").pop() || "jpg";
+      const ext = file.type === "image/png" ? "png" : "jpg";
       const path = `${user.id}/${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage
         .from("analysis-images")
@@ -164,7 +166,7 @@ function UploadPage() {
         >
           {preview ? (
             <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-muted">
-              <img src={preview} alt="Preview" className="absolute inset-0 h-full w-full object-cover" />
+              <img src={preview} alt="Preview" style={{ imageOrientation: "from-image" }} className="absolute inset-0 h-full w-full object-cover" />
             </div>
           ) : (
             <div className="flex flex-col items-center text-center text-muted-foreground gap-3">
@@ -181,7 +183,7 @@ function UploadPage() {
           type="file"
           accept="image/*"
           className="hidden"
-          onChange={(e) => onPick(e.target.files?.[0] ?? null)}
+          onChange={(e) => void onPick(e.target.files?.[0] ?? null)}
         />
 
         {preview && (

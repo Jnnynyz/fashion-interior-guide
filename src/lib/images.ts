@@ -166,10 +166,39 @@ export async function getDisplayImageUrl(url: string, options: DisplayImageOptio
 export async function saveGeneratedImage(url: string, fileName: string) {
   if (Capacitor.isNativePlatform()) {
     try {
+      // Download the image and write it to a local cache file so Media.savePhoto
+      // can reliably copy it to the Photos library (camera roll), not Files.
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Could not fetch image");
+      const blob = await res.blob();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const result = reader.result as string;
+          resolve(result.split(",")[1] ?? "");
+        };
+        reader.onerror = () => reject(new Error("Could not read image"));
+        reader.readAsDataURL(blob);
+      });
+
+      const localName = `whats-missing-${Date.now()}.png`;
+      const written = await Filesystem.writeFile({
+        path: localName,
+        data: base64,
+        directory: Directory.Cache,
+      });
+
       await Media.savePhoto({
-        path: url,
+        path: written.uri,
         fileName: fileName.replace(/\.[^.]+$/, ""),
       });
+
+      try {
+        await Filesystem.deleteFile({ path: localName, directory: Directory.Cache });
+      } catch {
+        // Ignore cleanup errors.
+      }
+
       return "camera-roll" as const;
     } catch {
       // Fall back to the browser download flow below.

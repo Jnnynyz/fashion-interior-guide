@@ -39,13 +39,15 @@ Deno.serve(async (req) => {
     }
     const userId = userData.user.id;
 
-    const { imagePath, category, environment } = await req.json();
+    const { imagePath, category, environment, language } = await req.json();
     if (!imagePath || !category) {
       return new Response(JSON.stringify({ error: "imagePath and category are required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const lang = language === "sv" ? "sv" : "en";
+    const langName = lang === "sv" ? "Swedish (svenska)" : "English";
 
     // Path must be owned by the authenticated user (e.g. "<userId>/...")
     if (typeof imagePath !== "string" || !imagePath.startsWith(`${userId}/`)) {
@@ -100,11 +102,12 @@ Deno.serve(async (req) => {
     const imageUrl = signed.signedUrl;
 
     const systemPrompt =
-      category === "outfit"
+      (category === "outfit"
         ? "You are a refined Scandinavian fashion stylist. Critique outfits with warmth and precision. Favor elegant minimalism, balanced proportion, and intentional accessorizing."
-        : "You are a Scandinavian interior designer. Critique interiors with warmth and precision. Favor minimalism, natural materials, balanced negative space, and intentional styling.";
+        : "You are a Scandinavian interior designer. Critique interiors with warmth and precision. Favor minimalism, natural materials, balanced negative space, and intentional styling.") +
+      ` IMPORTANT: All text fields you return (titles, reasons, summary) MUST be written in ${langName}. Do not mix languages.`;
 
-    const userPrompt = `Analyze this ${category} image and respond by calling the provided tool. Be specific, kind, and actionable. Provide 2-5 items for missing and 0-4 items for remove. Score 0-100 reflects current overall styling.`;
+    const userPrompt = `Analyze this ${category} image and respond by calling the provided tool. Be specific, kind, and actionable. Provide 2-5 items for missing and 0-4 items for remove. Score 0-100 reflects current overall styling. Write every field in ${langName}.`;
 
     const body = {
       model: "google/gemini-2.5-flash",

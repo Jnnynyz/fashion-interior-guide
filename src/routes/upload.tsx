@@ -6,6 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { PaywallCard } from "@/components/PaywallCard";
 import { useAuth } from "@/lib/auth";
 import { useEntitlement } from "@/hooks/useEntitlement";
+import { useI18n } from "@/lib/i18n";
 import { getPaymentsEnv } from "@/lib/paddle";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,7 @@ type Category = "outfit" | "interior";
 function UploadPage() {
   const { user, loading } = useAuth();
   const { hasSubscription, credits, loading: entLoading, refresh } = useEntitlement();
+  const { t, lang } = useI18n();
   const navigate = useNavigate();
   const [category, setCategory] = useState<Category>("outfit");
   const [file, setFile] = useState<File | null>(null);
@@ -54,11 +56,11 @@ function UploadPage() {
   const onPick = (f: File | null) => {
     if (!f) return;
     if (!f.type.startsWith("image/")) {
-      toast.error("Please choose an image file.");
+      toast.error(t("upload.err.image"));
       return;
     }
     if (f.size > 10 * 1024 * 1024) {
-      toast.error("Image must be under 10MB.");
+      toast.error(t("upload.err.size"));
       return;
     }
     setFile(f);
@@ -76,7 +78,7 @@ function UploadPage() {
       if (upErr) throw upErr;
 
       const { data, error } = await supabase.functions.invoke("analyze-image", {
-        body: { imagePath: path, category, environment: getPaymentsEnv() },
+        body: { imagePath: path, category, environment: getPaymentsEnv(), language: lang },
       });
       if (error) {
         const msg = (error as { message?: string }).message ?? "";
@@ -113,7 +115,7 @@ function UploadPage() {
       await refresh();
       navigate({ to: "/results/$id", params: { id: inserted.id } });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Analysis failed";
+      const msg = err instanceof Error ? err.message : t("upload.err.failed");
       toast.error(msg);
     } finally {
       setBusy(false);
@@ -133,26 +135,26 @@ function UploadPage() {
   return (
     <AppShell>
       <div className="pt-4">
-        <p className="text-[11px] uppercase tracking-[0.28em] text-accent">Step 01</p>
-        <h1 className="font-display text-4xl mt-2">Choose a category</h1>
+        <p className="text-[11px] uppercase tracking-[0.28em] text-accent">{t("upload.step1")}</p>
+        <h1 className="font-display text-4xl mt-2">{t("upload.choose")}</h1>
 
         <div className="grid grid-cols-2 gap-3 mt-5">
           <CategoryCard
             active={category === "outfit"}
             onClick={() => setCategory("outfit")}
             icon={<Shirt className="h-4 w-4" />}
-            title="Outfit"
+            title={t("upload.outfit")}
           />
           <CategoryCard
             active={category === "interior"}
             onClick={() => setCategory("interior")}
             icon={<Home className="h-4 w-4" />}
-            title="Interior"
+            title={t("upload.interior")}
           />
         </div>
 
-        <p className="text-[11px] uppercase tracking-[0.28em] text-accent mt-10">Step 02</p>
-        <h2 className="font-display text-3xl mt-2">Upload a photo</h2>
+        <p className="text-[11px] uppercase tracking-[0.28em] text-accent mt-10">{t("upload.step2")}</p>
+        <h2 className="font-display text-3xl mt-2">{t("upload.uploadPhoto")}</h2>
 
         <button
           type="button"
@@ -171,8 +173,8 @@ function UploadPage() {
               <span className="h-12 w-12 rounded-full bg-secondary grid place-items-center">
                 <ImagePlus className="h-5 w-5 text-foreground" />
               </span>
-              <span className="font-display text-xl text-foreground">Tap to add image</span>
-              <span className="text-xs">JPG or PNG · up to 10MB</span>
+              <span className="font-display text-xl text-foreground">{t("upload.tap")}</span>
+              <span className="text-xs">{t("upload.formats")}</span>
             </div>
           )}
         </button>
@@ -192,7 +194,7 @@ function UploadPage() {
             }}
             className="mt-3 text-xs uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground"
           >
-            Replace photo
+            {t("upload.replace")}
           </button>
         )}
 
@@ -203,10 +205,10 @@ function UploadPage() {
         >
           {busy ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin" /> Analyzing…
+              <Loader2 className="h-4 w-4 animate-spin" /> {t("upload.analyzing")}
             </>
           ) : (
-            <>Analyze {category}</>
+            <>{t("upload.analyze", { category: category === "outfit" ? t("upload.outfit") : t("upload.interior") })}</>
           )}
         </button>
       </div>

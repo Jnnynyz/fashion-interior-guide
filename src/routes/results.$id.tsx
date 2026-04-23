@@ -6,6 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 import { getDisplayImageUrl, saveGeneratedImage } from "@/lib/images";
 import { getSignedImageUrl } from "@/lib/storage";
 
@@ -37,6 +38,7 @@ export const Route = createFileRoute("/results/$id")({
 function ResultsPage() {
   const { id } = Route.useParams();
   const { user, loading } = useAuth();
+  const { t, lang } = useI18n();
   const navigate = useNavigate();
   const [data, setData] = useState<Analysis | null>(null);
   const [fetching, setFetching] = useState(true);
@@ -73,7 +75,7 @@ function ResultsPage() {
 
   const onDelete = async () => {
     if (!data) return;
-    if (!confirm("Delete this analysis?")) return;
+    if (!confirm(t("results.confirmDelete"))) return;
     const paths = [data.image_path, ...(data.after_image_path ? [data.after_image_path] : [])];
     await supabase.storage.from("analysis-images").remove(paths);
     const { error } = await supabase.from("analyses").delete().eq("id", data.id);
@@ -81,7 +83,7 @@ function ResultsPage() {
       toast.error(error.message);
       return;
     }
-    toast.success("Deleted.");
+    toast.success(t("results.deleted"));
     navigate({ to: "/history" });
   };
 
@@ -91,34 +93,34 @@ function ResultsPage() {
     try {
       const { getPaymentsEnv } = await import("@/lib/paddle");
       const { data: res, error } = await supabase.functions.invoke("generate-after-image", {
-        body: { analysisId: data.id, environment: getPaymentsEnv() },
+        body: { analysisId: data.id, environment: getPaymentsEnv(), language: lang },
       });
       if (error) {
-        const msg = (error as { message?: string }).message ?? "Could not generate the after photo.";
+        const msg = (error as { message?: string }).message ?? t("upload.err.failed");
         if (/402|no_credits/i.test(msg)) {
-          toast.error("You're out of credits. Upgrade to keep refining.");
+          toast.error(t("results.noCredits"));
           navigate({ to: "/pricing" });
           return;
         }
-        if (/429|rate/i.test(msg)) toast.error("Too many requests. Try again in a moment.");
+        if (/429|rate/i.test(msg)) toast.error(t("results.rate"));
         else toast.error(msg);
         return;
       }
       if ((res as { error?: string })?.error === "no_credits") {
-        toast.error("You're out of credits. Upgrade to keep refining.");
+        toast.error(t("results.noCredits"));
         navigate({ to: "/pricing" });
         return;
       }
       const url = (res as { after_image_url?: string })?.after_image_url;
       if (!url) {
-        toast.error("No image returned. Please try again.");
+        toast.error(t("results.noImage"));
         return;
       }
       setAfterUrl(await getDisplayImageUrl(url, { rotateLandscapePortrait: data.category === "outfit" }));
       setData({ ...data, after_image_url: url, after_image_path: data.after_image_path ?? `${user?.id}/${data.id}-after.png` });
-      toast.success("After photo ready.");
+      toast.success(t("results.afterReady"));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Generation failed");
+      toast.error(e instanceof Error ? e.message : t("upload.err.failed"));
     } finally {
       setGeneratingAfter(false);
     }
@@ -129,16 +131,16 @@ function ResultsPage() {
     if (!url) return;
     try {
       const method = await saveGeneratedImage(url, `whats-missing-after-${data?.id ?? "image"}.png`);
-      toast.success(method === "camera-roll" ? "Saved to camera roll." : "Downloaded.");
+      toast.success(method === "camera-roll" ? t("results.savedRoll") : t("results.downloaded"));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Download failed");
+      toast.error(e instanceof Error ? e.message : t("upload.err.failed"));
     }
   };
 
   if (fetching) {
     return (
       <AppShell>
-        <div className="pt-20 text-center text-muted-foreground">Loading your analysis…</div>
+        <div className="pt-20 text-center text-muted-foreground">{t("results.loading")}</div>
       </AppShell>
     );
   }
@@ -147,8 +149,8 @@ function ResultsPage() {
     return (
       <AppShell>
         <div className="pt-20 text-center">
-          <p className="text-muted-foreground">Analysis not found.</p>
-          <Link to="/upload" className="text-accent underline mt-3 inline-block">Start a new one</Link>
+          <p className="text-muted-foreground">{t("results.notFound")}</p>
+          <Link to="/upload" className="text-accent underline mt-3 inline-block">{t("results.startNew")}</Link>
         </div>
       </AppShell>
     );
@@ -158,13 +160,13 @@ function ResultsPage() {
     <AppShell>
       <div className="flex items-center justify-between pt-2">
         <Link to="/history" className="text-xs uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5">
-          <ArrowLeft className="h-3.5 w-3.5" /> History
+          <ArrowLeft className="h-3.5 w-3.5" /> {t("results.history")}
         </Link>
         <button
           onClick={onDelete}
           className="text-xs uppercase tracking-[0.22em] text-muted-foreground hover:text-destructive inline-flex items-center gap-1.5"
         >
-          <Trash2 className="h-3.5 w-3.5" /> Delete
+          <Trash2 className="h-3.5 w-3.5" /> {t("results.delete")}
         </button>
       </div>
 
@@ -173,7 +175,7 @@ function ResultsPage() {
           <img src={beforeUrl} alt="Your upload" style={{ imageOrientation: "from-image" }} className="absolute inset-0 h-full w-full object-cover" />
           {data.score !== null && (
             <div className="absolute top-3 right-3 bg-background/90 backdrop-blur rounded-full px-3 py-1.5 text-xs">
-              <span className="text-muted-foreground">Score </span>
+              <span className="text-muted-foreground">{t("results.score")}</span>
               <span className="font-display text-base">{data.score}</span>
               <span className="text-muted-foreground">/100</span>
             </div>
@@ -181,24 +183,24 @@ function ResultsPage() {
         </div>
         <div className="p-5">
           <p className="text-[11px] uppercase tracking-[0.28em] text-accent">
-            {data.category === "outfit" ? "Outfit" : "Interior"} · Style summary
+            {data.category === "outfit" ? t("results.summary.outfit") : t("results.summary.interior")}
           </p>
           <p className="font-display text-xl mt-2 leading-snug text-balance">{data.summary}</p>
         </div>
       </div>
 
       <Section
-        title="What's missing"
+        title={t("results.missing.title")}
         accent
         icon={<Plus className="h-3.5 w-3.5" />}
         items={data.missing}
-        empty="Nothing missing — beautifully complete."
+        empty={t("results.missing.empty")}
       />
       <Section
-        title="What to remove"
+        title={t("results.remove.title")}
         icon={<Minus className="h-3.5 w-3.5" />}
         items={data.remove}
-        empty="Nothing to remove. Effortlessly edited."
+        empty={t("results.remove.empty")}
       />
 
       <section className="mt-8">
@@ -207,10 +209,10 @@ function ResultsPage() {
             <span className="h-6 w-6 rounded-full grid place-items-center bg-secondary text-foreground">
               <Sparkles className="h-3.5 w-3.5" />
             </span>
-            <h2 className="font-display text-2xl">After</h2>
+            <h2 className="font-display text-2xl">{t("results.after")}</h2>
           </div>
           {data.after_image_url && !generatingAfter && (
-            <span className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">AI preview</span>
+            <span className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">{t("results.aiPreview")}</span>
           )}
         </div>
 
@@ -227,7 +229,7 @@ function ResultsPage() {
                       className="absolute inset-0 h-full w-full object-contain"
                     />
                   </div>
-                  <figcaption className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground text-center py-2">Before</figcaption>
+                  <figcaption className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground text-center py-2">{t("results.before")}</figcaption>
                 </figure>
                 <figure className="bg-card flex flex-col">
                   <div className="aspect-[4/5] bg-muted relative overflow-hidden">
@@ -241,7 +243,7 @@ function ResultsPage() {
                       <Sparkles className="h-2.5 w-2.5 text-accent" /> AI
                     </div>
                   </div>
-                  <figcaption className="text-[10px] uppercase tracking-[0.22em] text-accent text-center py-2">After</figcaption>
+                  <figcaption className="text-[10px] uppercase tracking-[0.22em] text-accent text-center py-2">{t("results.afterCap")}</figcaption>
                 </figure>
               </div>
               <div className="p-4 space-y-3">
@@ -249,16 +251,16 @@ function ResultsPage() {
                   onClick={onDownloadAfter}
                   className="w-full inline-flex items-center justify-center gap-2 h-12 rounded-full bg-primary text-primary-foreground font-medium tracking-wide shadow-soft hover:opacity-90 transition"
                 >
-                  <Download className="h-4 w-4" /> Save to camera roll
+                  <Download className="h-4 w-4" /> {t("results.save")}
                 </button>
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground">An AI visualization — not a real photo.</p>
+                  <p className="text-xs text-muted-foreground">{t("results.disclaimer")}</p>
                   <button
                     onClick={onGenerateAfter}
                     disabled={generatingAfter}
                     className="text-xs uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5"
                   >
-                    <RotateCw className="h-3 w-3" /> Redo
+                    <RotateCw className="h-3 w-3" /> {t("results.redo")}
                   </button>
                 </div>
               </div>
@@ -266,20 +268,20 @@ function ResultsPage() {
           ) : generatingAfter ? (
             <div className="p-6">
               <Skeleton className="aspect-[4/5] w-full rounded-2xl" />
-              <p className="text-sm text-muted-foreground text-center mt-4">Styling your after photo… this takes 15–30s.</p>
+              <p className="text-sm text-muted-foreground text-center mt-4">{t("results.styling")}</p>
             </div>
           ) : (
             <div className="p-8 text-center">
               <div className="aspect-[4/5] rounded-2xl bg-muted/60 grid place-items-center mb-5">
                 <Sparkles className="h-7 w-7 text-muted-foreground" />
               </div>
-              <p className="font-display text-xl leading-snug">See the fix, visualized.</p>
-              <p className="text-sm text-muted-foreground mt-2">Generate an AI mockup applying the suggestions above.</p>
+              <p className="font-display text-xl leading-snug">{t("results.see")}</p>
+              <p className="text-sm text-muted-foreground mt-2">{t("results.gen.lede")}</p>
               <button
                 onClick={onGenerateAfter}
                 className="mt-5 inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full bg-primary text-primary-foreground font-medium tracking-wide shadow-soft hover:opacity-90 transition"
               >
-                <Sparkles className="h-4 w-4" /> Generate after photo
+                <Sparkles className="h-4 w-4" /> {t("results.gen.cta")}
               </button>
             </div>
           )}
@@ -291,7 +293,7 @@ function ResultsPage() {
         to="/upload"
         className="mt-10 mb-4 inline-flex w-full items-center justify-center h-12 rounded-full bg-primary text-primary-foreground font-medium tracking-wide shadow-soft hover:opacity-90 transition"
       >
-        Analyze another
+        {t("results.again")}
       </Link>
     </AppShell>
   );

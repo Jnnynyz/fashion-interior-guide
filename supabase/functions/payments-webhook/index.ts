@@ -96,12 +96,23 @@ async function markSubscriptionCanceled(data: any, env: PaddleEnv) {
 async function handleTransactionCompleted(data: any) {
   // Only grant pack credits for one-off pack purchases
   const userId = data.customData?.userId;
-  if (!userId) return;
+  if (!userId) {
+    console.error("transaction.completed missing customData.userId", data.id);
+    return;
+  }
 
   const items: any[] = data.items || [];
   for (const it of items) {
-    const externalPriceId = it.price?.importMeta?.externalId;
-    if (externalPriceId === "pack_10_price") {
+    // Paddle SDK normalizes to camelCase, but fall back to snake_case defensively
+    const importMeta = it.price?.importMeta ?? it.price?.import_meta;
+    const externalPriceId =
+      importMeta?.externalId ?? importMeta?.external_id ?? it.price?.id;
+    const productImportMeta = it.price?.product?.importMeta ?? it.price?.product?.import_meta;
+    const externalProductId = productImportMeta?.externalId ?? productImportMeta?.external_id;
+
+    console.log("tx item:", { externalPriceId, externalProductId, priceId: it.price?.id });
+
+    if (externalPriceId === "pack_10_price" || externalProductId === "pack_10") {
       const qty = (it.quantity || 1) * 10;
       const { error } = await supabase.rpc("grant_pack_credits", {
         user_uuid: userId,

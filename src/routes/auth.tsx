@@ -104,6 +104,17 @@ function AuthPage() {
             />
           </Field>
 
+          {mode === "signin" && (
+            <div className="text-right">
+              <Link
+                to="/forgot-password"
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Forgot your password?
+              </Link>
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={busy}

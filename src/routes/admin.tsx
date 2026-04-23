@@ -1,0 +1,161 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { Loader2, Users, CreditCard, Sparkles, Image as ImageIcon, ArrowLeft } from "lucide-react";
+import { AppShell } from "@/components/AppShell";
+import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
+
+export const Route = createFileRoute("/admin")({
+  head: () => ({
+    meta: [{ title: "Admin — What's Missing" }, { name: "robots", content: "noindex" }],
+  }),
+  component: AdminPage,
+});
+
+type Stats = {
+  total_users: number;
+  signups_30d: number;
+  active_subscriptions: number;
+  subscriptions_by_plan: Record<string, number>;
+  pack_credits_sold: number;
+  analyses_total: number;
+  analyses_30d: number;
+};
+
+const PLAN_LABELS: Record<string, string> = {
+  monthly_unlimited: "Monthly Unlimited",
+  halfyear_unlimited: "6-Month Unlimited",
+  yearly_unlimited: "Yearly Unlimited",
+};
+
+function AdminPage() {
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      navigate({ to: "/auth" });
+      return;
+    }
+    (async () => {
+      setLoading(true);
+      const { data, error } = await supabase.rpc("admin_stats");
+      if (error) {
+        setError(error.message.includes("Forbidden") ? "You don't have access to this page." : error.message);
+      } else {
+        setStats(data as unknown as Stats);
+      }
+      setLoading(false);
+    })();
+  }, [user, authLoading, navigate]);
+
+  return (
+    <AppShell>
+      <div className="pt-2">
+        <Link
+          to="/upload"
+          className="text-xs uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> Back
+        </Link>
+      </div>
+
+      <section className="pt-6 pb-8">
+        <p className="text-[11px] uppercase tracking-[0.28em] text-accent mb-4">Admin</p>
+        <h1 className="font-display text-4xl sm:text-5xl leading-[1.05]">Stats</h1>
+        <p className="mt-3 text-sm text-muted-foreground">A quiet glance at how things are going.</p>
+      </section>
+
+      {loading && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" /> Loading…
+        </div>
+      )}
+
+      {error && (
+        <div className="rounded-2xl bg-card border border-border/60 p-5 text-sm">
+          {error}
+        </div>
+      )}
+
+      {stats && (
+        <>
+          <div className="grid grid-cols-2 gap-3">
+            <StatCard
+              label="Total users"
+              value={stats.total_users}
+              hint={`+${stats.signups_30d} in last 30 days`}
+              icon={<Users className="h-4 w-4" />}
+            />
+            <StatCard
+              label="Active subscribers"
+              value={stats.active_subscriptions}
+              hint="Across all plans"
+              icon={<Sparkles className="h-4 w-4" />}
+            />
+            <StatCard
+              label="Pack credits sold"
+              value={stats.pack_credits_sold}
+              hint="All-time, 10-pack purchases"
+              icon={<CreditCard className="h-4 w-4" />}
+            />
+            <StatCard
+              label="Analyses"
+              value={stats.analyses_total}
+              hint={`${stats.analyses_30d} in last 30 days`}
+              icon={<ImageIcon className="h-4 w-4" />}
+            />
+          </div>
+
+          <section className="mt-6">
+            <div className="rounded-3xl bg-card border border-border/60 p-6 shadow-soft">
+              <p className="text-[11px] uppercase tracking-[0.28em] text-accent">Subscribers by plan</p>
+              <h3 className="font-display text-2xl mt-2">Breakdown</h3>
+              {Object.keys(stats.subscriptions_by_plan).length === 0 ? (
+                <p className="mt-4 text-sm text-muted-foreground">No active subscribers yet.</p>
+              ) : (
+                <ul className="mt-4 divide-y divide-border/60">
+                  {Object.entries(stats.subscriptions_by_plan).map(([plan, n]) => (
+                    <li key={plan} className="flex items-center justify-between py-3 text-sm">
+                      <span>{PLAN_LABELS[plan] ?? plan}</span>
+                      <span className="font-display text-lg">{n}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </section>
+        </>
+      )}
+    </AppShell>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  hint,
+  icon,
+}: {
+  label: string;
+  value: number;
+  hint?: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-3xl bg-card border border-border/60 p-5 shadow-soft">
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <span className="h-7 w-7 rounded-full bg-accent/30 text-accent-foreground grid place-items-center">
+          {icon}
+        </span>
+        <span className="text-[11px] uppercase tracking-[0.22em]">{label}</span>
+      </div>
+      <p className="mt-3 font-display text-3xl">{value.toLocaleString()}</p>
+      {hint && <p className="mt-1 text-[11px] text-muted-foreground">{hint}</p>}
+    </div>
+  );
+}

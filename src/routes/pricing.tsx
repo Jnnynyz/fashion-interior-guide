@@ -1,10 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Check, Loader2, Sparkles, ArrowLeft } from "lucide-react";
-import { useEffect } from "react";
+import { Check, Loader2, Sparkles, ArrowLeft, Gift } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/lib/auth";
 import { useEntitlement } from "@/hooks/useEntitlement";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/pricing")({

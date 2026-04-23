@@ -223,3 +223,61 @@ function PlanCard({
     </div>
   );
 }
+
+function RedeemCard({ onRedeemed }: { onRedeemed: () => Promise<void> }) {
+  const [code, setCode] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!code.trim()) return;
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("redeem-promo", {
+        body: { code: code.trim() },
+      });
+      if (error || (data as any)?.error) {
+        toast.error((data as any)?.error || "Could not redeem code");
+        return;
+      }
+      toast.success(`${(data as any).credits} credits added to your account!`);
+      setCode("");
+      await onRedeemed();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <section className="mt-6">
+      <div className="rounded-3xl bg-card border border-border/60 p-6 shadow-soft">
+        <div className="flex items-center gap-2">
+          <span className="h-7 w-7 rounded-full bg-accent text-accent-foreground grid place-items-center">
+            <Gift className="h-3.5 w-3.5" />
+          </span>
+          <p className="text-[11px] uppercase tracking-[0.28em] text-accent">Have a code?</p>
+        </div>
+        <h3 className="font-display text-2xl mt-3">Redeem promo code</h3>
+        <p className="text-sm text-muted-foreground mt-1.5">
+          Enter your code to add free credits to your account.
+        </p>
+        <form onSubmit={submit} className="mt-4 flex gap-2">
+          <input
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="Enter code"
+            className="flex-1 h-11 rounded-full bg-secondary px-5 text-sm outline-none focus:ring-2 focus:ring-accent"
+            autoCapitalize="characters"
+          />
+          <button
+            type="submit"
+            disabled={loading || !code.trim()}
+            className="h-11 px-6 rounded-full bg-primary text-primary-foreground font-medium tracking-wide hover:opacity-90 transition disabled:opacity-50"
+          >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Redeem"}
+          </button>
+        </form>
+      </div>
+    </section>
+  );
+}

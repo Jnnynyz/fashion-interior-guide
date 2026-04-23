@@ -150,6 +150,8 @@ function PricingPage() {
         </div>
       </section>
 
+      {user && <RedeemCard onRedeemed={refresh} />}
+
       <p className="mt-8 mb-4 text-center text-xs text-muted-foreground">
         Free plan: 5 analyses every month, forever.
       </p>

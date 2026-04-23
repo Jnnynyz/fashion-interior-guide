@@ -4,6 +4,7 @@ import { Sparkles } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 import { getSignedImageUrls } from "@/lib/storage";
 
 type Row = {
@@ -28,6 +29,7 @@ export const Route = createFileRoute("/history")({
 
 function HistoryPage() {
   const { user, loading } = useAuth();
+  const { t, lang } = useI18n();
   const navigate = useNavigate();
   const [rows, setRows] = useState<Row[] | null>(null);
   const [signed, setSigned] = useState<Record<string, string>>({});
@@ -50,26 +52,28 @@ function HistoryPage() {
     })();
   }, [user, loading, navigate]);
 
+  const localeTag = lang === "sv" ? "sv-SE" : "en-US";
+
   return (
     <AppShell>
       <div className="pt-4">
-        <p className="text-[11px] uppercase tracking-[0.28em] text-accent">Archive</p>
-        <h1 className="font-display text-4xl mt-2">Your analyses</h1>
-        <p className="text-sm text-muted-foreground mt-2">A quiet record of your refinements.</p>
+        <p className="text-[11px] uppercase tracking-[0.28em] text-accent">{t("history.eyebrow")}</p>
+        <h1 className="font-display text-4xl mt-2">{t("history.title")}</h1>
+        <p className="text-sm text-muted-foreground mt-2">{t("history.lede")}</p>
       </div>
 
       {rows === null ? (
-        <p className="mt-10 text-center text-muted-foreground">Loading…</p>
+        <p className="mt-10 text-center text-muted-foreground">{t("history.loading")}</p>
       ) : rows.length === 0 ? (
         <div className="mt-10 rounded-3xl border border-dashed border-border bg-card p-10 text-center">
           <Sparkles className="h-5 w-5 text-accent mx-auto" />
-          <p className="font-display text-2xl mt-3">Nothing here yet</p>
-          <p className="text-sm text-muted-foreground mt-2">Begin your first analysis.</p>
+          <p className="font-display text-2xl mt-3">{t("history.empty.title")}</p>
+          <p className="text-sm text-muted-foreground mt-2">{t("history.empty.body")}</p>
           <Link
             to="/upload"
             className="mt-5 inline-flex h-11 items-center justify-center rounded-full bg-primary text-primary-foreground px-6 font-medium hover:opacity-90"
           >
-            Analyze a photo
+            {t("history.empty.cta")}
           </Link>
         </div>
       ) : (
@@ -87,7 +91,7 @@ function HistoryPage() {
                 <div className="flex-1 min-w-0 py-1">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-[10px] uppercase tracking-[0.24em] text-accent">
-                      {r.category}
+                      {r.category === "outfit" ? t("upload.outfit") : t("upload.interior")}
                     </span>
                     {r.score !== null && (
                       <span className="text-xs text-muted-foreground">
@@ -96,10 +100,10 @@ function HistoryPage() {
                     )}
                   </div>
                   <p className="font-display text-base leading-snug mt-1 line-clamp-2">
-                    {r.summary || "Analysis"}
+                    {r.summary || t("history.title")}
                   </p>
                   <p className="text-[11px] text-muted-foreground mt-1.5">
-                    {new Date(r.created_at).toLocaleDateString(undefined, {
+                    {new Date(r.created_at).toLocaleDateString(localeTag, {
                       month: "short",
                       day: "numeric",
                       year: "numeric",

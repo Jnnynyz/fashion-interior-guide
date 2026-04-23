@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 import { AppShell } from "@/components/AppShell";
 
 export const Route = createFileRoute("/auth")({
@@ -17,6 +18,7 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const { user, loading } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
@@ -42,11 +44,11 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        toast.success("Welcome — your account is ready.");
+        toast.success(t("auth.welcomeReady"));
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        toast.success("Signed in.");
+        toast.success(t("auth.signedIn"));
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
@@ -60,29 +62,27 @@ function AuthPage() {
     <AppShell>
       <div className="max-w-md mx-auto pt-6">
         <Link to="/" className="text-xs uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground">
-          ← Home
+          {t("auth.home")}
         </Link>
         <h1 className="font-display text-4xl mt-4">
-          {mode === "signin" ? "Welcome back" : "Create your account"}
+          {mode === "signin" ? t("auth.welcome") : t("auth.create")}
         </h1>
         <p className="text-sm text-muted-foreground mt-2">
-          {mode === "signin"
-            ? "Sign in to continue your style journey."
-            : "A quiet space for thoughtful styling."}
+          {mode === "signin" ? t("auth.lede.signin") : t("auth.lede.signup")}
         </p>
 
         <form onSubmit={submit} className="mt-8 space-y-4">
           {mode === "signup" && (
-            <Field label="Display name">
+            <Field label={t("auth.field.name")}>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Your name"
+                placeholder={t("auth.field.name.ph")}
                 className="input-base"
               />
             </Field>
           )}
-          <Field label="Email">
+          <Field label={t("auth.field.email")}>
             <input
               type="email"
               required
@@ -92,7 +92,7 @@ function AuthPage() {
               className="input-base"
             />
           </Field>
-          <Field label="Password">
+          <Field label={t("auth.field.password")}>
             <input
               type="password"
               required
@@ -110,7 +110,7 @@ function AuthPage() {
                 to="/forgot-password"
                 className="text-xs text-muted-foreground hover:text-foreground"
               >
-                Forgot your password?
+                {t("auth.forgot")}
               </Link>
             </div>
           )}
@@ -120,7 +120,7 @@ function AuthPage() {
             disabled={busy}
             className="w-full h-12 rounded-full bg-primary text-primary-foreground font-medium tracking-wide shadow-soft hover:opacity-90 transition disabled:opacity-60"
           >
-            {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
+            {busy ? t("auth.wait") : mode === "signin" ? t("auth.submit.signin") : t("auth.submit.signup")}
           </button>
         </form>
 
@@ -128,9 +128,7 @@ function AuthPage() {
           onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
           className="mt-6 text-sm text-muted-foreground hover:text-foreground w-full text-center"
         >
-          {mode === "signin"
-            ? "No account yet? Create one →"
-            : "Already have an account? Sign in →"}
+          {mode === "signin" ? t("auth.toggle.toSignup") : t("auth.toggle.toSignin")}
         </button>
       </div>
 

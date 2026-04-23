@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/forgot-password")({
   head: () => ({
@@ -15,6 +16,7 @@ export const Route = createFileRoute("/forgot-password")({
 });
 
 function ForgotPasswordPage() {
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
@@ -28,7 +30,7 @@ function ForgotPasswordPage() {
       });
       if (error) throw error;
       setSent(true);
-      toast.success("Check your inbox for a reset link.");
+      toast.success(t("forgot.toast"));
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
       toast.error(msg);
@@ -41,23 +43,22 @@ function ForgotPasswordPage() {
     <AppShell>
       <div className="max-w-md mx-auto pt-6">
         <Link to="/auth" className="text-xs uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground">
-          ← Back to sign in
+          {t("forgot.back")}
         </Link>
-        <h1 className="font-display text-4xl mt-4">Forgot your password?</h1>
+        <h1 className="font-display text-4xl mt-4">{t("forgot.title")}</h1>
         <p className="text-sm text-muted-foreground mt-2">
-          Enter your email and we'll send you a link to reset it.
+          {t("forgot.lede")}
         </p>
 
         {sent ? (
           <div className="mt-8 rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
-            We've sent a reset link to <span className="text-foreground">{email}</span>. Please check
-            your inbox (and spam folder).
+            {t("forgot.sent.pre")}<span className="text-foreground">{email}</span>{t("forgot.sent.post")}
           </div>
         ) : (
           <form onSubmit={submit} className="mt-8 space-y-4">
             <label className="block">
               <span className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground ml-1">
-                Email
+                {t("auth.field.email")}
               </span>
               <div className="mt-1.5">
                 <input
@@ -76,7 +77,7 @@ function ForgotPasswordPage() {
               disabled={busy}
               className="w-full h-12 rounded-full bg-primary text-primary-foreground font-medium tracking-wide shadow-soft hover:opacity-90 transition disabled:opacity-60"
             >
-              {busy ? "Sending…" : "Send reset link"}
+              {busy ? t("forgot.sending") : t("forgot.send")}
             </button>
           </form>
         )}

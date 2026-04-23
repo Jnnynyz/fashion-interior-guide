@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
@@ -15,6 +16,7 @@ export const Route = createFileRoute("/reset-password")({
 });
 
 function ResetPasswordPage() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -22,8 +24,6 @@ function ResetPasswordPage() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    // Supabase auth client picks up the recovery token from the URL hash and
-    // emits a PASSWORD_RECOVERY event; allow the form once we have a session.
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "PASSWORD_RECOVERY" || session) setReady(true);
     });
@@ -36,18 +36,18 @@ function ResetPasswordPage() {
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (password.length < 6) {
-      toast.error("Password must be at least 6 characters.");
+      toast.error(t("reset.short"));
       return;
     }
     if (password !== confirm) {
-      toast.error("Passwords don't match.");
+      toast.error(t("reset.mismatch"));
       return;
     }
     setBusy(true);
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
-      toast.success("Password updated. You're signed in.");
+      toast.success(t("reset.success"));
       navigate({ to: "/upload" });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
@@ -61,19 +61,17 @@ function ResetPasswordPage() {
     <AppShell>
       <div className="max-w-md mx-auto pt-6">
         <Link to="/auth" className="text-xs uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground">
-          ← Back to sign in
+          {t("forgot.back")}
         </Link>
-        <h1 className="font-display text-4xl mt-4">Set a new password</h1>
+        <h1 className="font-display text-4xl mt-4">{t("reset.title")}</h1>
         <p className="text-sm text-muted-foreground mt-2">
-          {ready
-            ? "Choose a new password for your account."
-            : "Verifying your reset link…"}
+          {ready ? t("reset.lede.ready") : t("reset.lede.verifying")}
         </p>
 
         <form onSubmit={submit} className="mt-8 space-y-4">
           <label className="block">
             <span className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground ml-1">
-              New password
+              {t("reset.field.new")}
             </span>
             <div className="mt-1.5">
               <input
@@ -89,7 +87,7 @@ function ResetPasswordPage() {
           </label>
           <label className="block">
             <span className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground ml-1">
-              Confirm password
+              {t("reset.field.confirm")}
             </span>
             <div className="mt-1.5">
               <input
@@ -109,7 +107,7 @@ function ResetPasswordPage() {
             disabled={busy || !ready}
             className="w-full h-12 rounded-full bg-primary text-primary-foreground font-medium tracking-wide shadow-soft hover:opacity-90 transition disabled:opacity-60"
           >
-            {busy ? "Updating…" : "Update password"}
+            {busy ? t("reset.updating") : t("reset.submit")}
           </button>
         </form>
       </div>

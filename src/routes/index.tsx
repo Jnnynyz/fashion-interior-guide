@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Sparkles, Shirt, Home } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -24,20 +25,20 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { user } = useAuth();
+  const { t } = useI18n();
   return (
     <AppShell>
       <section className="pt-6 pb-12">
         <p className="text-[11px] uppercase tracking-[0.28em] text-accent mb-5">
-          Styling, refined
+          {t("index.eyebrow")}
         </p>
         <h1 className="font-display text-5xl sm:text-6xl leading-[1.02] text-balance">
-          What's missing
+          {t("index.h1.line1")}
           <br />
-          from the picture?
+          {t("index.h1.line2")}
         </h1>
         <p className="mt-5 text-base text-muted-foreground max-w-md text-balance">
-          Upload a photo of an outfit or a room. We'll tell you what to add, what to
-          remove, and why — with the calm precision of a Scandinavian stylist.
+          {t("index.lede")}
         </p>
 
         <div className="mt-8 flex flex-col gap-3">
@@ -45,14 +46,14 @@ function Index() {
             to={user ? "/upload" : "/auth"}
             className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full bg-primary text-primary-foreground font-medium tracking-wide shadow-soft hover:opacity-90 transition"
           >
-            Begin an analysis <ArrowRight className="h-4 w-4" />
+            {t("index.cta.begin")} <ArrowRight className="h-4 w-4" />
           </Link>
           {!user && (
             <Link
               to="/auth"
               className="inline-flex items-center justify-center h-11 px-6 rounded-full border border-border bg-card text-foreground/80 hover:text-foreground transition"
             >
-              I already have an account
+              {t("index.cta.have")}
             </Link>
           )}
         </div>
@@ -61,25 +62,21 @@ function Index() {
       <section className="grid sm:grid-cols-2 gap-4 mt-4">
         <FeatureCard
           icon={<Shirt className="h-4 w-4" />}
-          title="Outfit"
-          body="Layering, proportion, accessories. We help you finish the look."
+          title={t("index.feature.outfit.title")}
+          body={t("index.feature.outfit.body")}
         />
         <FeatureCard
           icon={<Home className="h-4 w-4" />}
-          title="Interior"
-          body="Negative space, materials, focal points. A calmer room, intentional."
+          title={t("index.feature.interior.title")}
+          body={t("index.feature.interior.body")}
         />
       </section>
 
       <section className="mt-10 rounded-3xl bg-card p-6 sm:p-8 shadow-soft border border-border/60">
         <Sparkles className="h-4 w-4 text-accent" />
-        <h2 className="font-display text-2xl mt-3">Three easy steps</h2>
+        <h2 className="font-display text-2xl mt-3">{t("index.steps.title")}</h2>
         <ol className="mt-5 space-y-4 text-sm">
-          {[
-            "Choose outfit or interior.",
-            "Upload a single, well-lit photo.",
-            "Receive a refined, actionable critique.",
-          ].map((s, i) => (
+          {[t("index.step.1"), t("index.step.2"), t("index.step.3")].map((s, i) => (
             <li key={i} className="flex gap-3">
               <span className="font-display text-accent text-base w-5">{i + 1}</span>
               <span className="text-foreground/80">{s}</span>

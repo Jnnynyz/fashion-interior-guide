@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Loader2, Users, CreditCard, Sparkles, Image as ImageIcon, ArrowLeft } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin")({
@@ -22,18 +23,19 @@ type Stats = {
   analyses_30d: number;
 };
 
-const PLAN_LABELS: Record<string, string> = {
-  monthly_unlimited: "Monthly Unlimited",
-  halfyear_unlimited: "6-Month Unlimited",
-  yearly_unlimited: "Yearly Unlimited",
-};
-
 function AdminPage() {
   const { user, loading: authLoading } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [stats, setStats] = useState<Stats | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const PLAN_LABELS: Record<string, string> = {
+    monthly_unlimited: t("plan.monthly.name"),
+    halfyear_unlimited: t("plan.half.name"),
+    yearly_unlimited: t("plan.year.name"),
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -45,13 +47,13 @@ function AdminPage() {
       setLoading(true);
       const { data, error } = await supabase.rpc("admin_stats");
       if (error) {
-        setError(error.message.includes("Forbidden") ? "You don't have access to this page." : error.message);
+        setError(error.message.includes("Forbidden") ? t("admin.forbidden") : error.message);
       } else {
         setStats(data as unknown as Stats);
       }
       setLoading(false);
     })();
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, navigate, t]);
 
   return (
     <AppShell>
@@ -60,19 +62,19 @@ function AdminPage() {
           to="/upload"
           className="text-xs uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5"
         >
-          <ArrowLeft className="h-3.5 w-3.5" /> Back
+          <ArrowLeft className="h-3.5 w-3.5" /> {t("common.back")}
         </Link>
       </div>
 
       <section className="pt-6 pb-8">
-        <p className="text-[11px] uppercase tracking-[0.28em] text-accent mb-4">Admin</p>
-        <h1 className="font-display text-4xl sm:text-5xl leading-[1.05]">Stats</h1>
-        <p className="mt-3 text-sm text-muted-foreground">A quiet glance at how things are going.</p>
+        <p className="text-[11px] uppercase tracking-[0.28em] text-accent mb-4">{t("admin.eyebrow")}</p>
+        <h1 className="font-display text-4xl sm:text-5xl leading-[1.05]">{t("admin.title")}</h1>
+        <p className="mt-3 text-sm text-muted-foreground">{t("admin.lede")}</p>
       </section>
 
       {loading && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" /> Loading…
+          <Loader2 className="h-4 w-4 animate-spin" /> {t("admin.loading")}
         </div>
       )}
 
@@ -86,37 +88,37 @@ function AdminPage() {
         <>
           <div className="grid grid-cols-2 gap-3">
             <StatCard
-              label="Total users"
+              label={t("admin.totalUsers")}
               value={stats.total_users}
-              hint={`+${stats.signups_30d} in last 30 days`}
+              hint={t("admin.signupsHint", { n: stats.signups_30d })}
               icon={<Users className="h-4 w-4" />}
             />
             <StatCard
-              label="Active subscribers"
+              label={t("admin.subs")}
               value={stats.active_subscriptions}
-              hint="Across all plans"
+              hint={t("admin.subsHint")}
               icon={<Sparkles className="h-4 w-4" />}
             />
             <StatCard
-              label="Pack credits sold"
+              label={t("admin.packs")}
               value={stats.pack_credits_sold}
-              hint="All-time, 10-pack purchases"
+              hint={t("admin.packsHint")}
               icon={<CreditCard className="h-4 w-4" />}
             />
             <StatCard
-              label="Analyses"
+              label={t("admin.analyses")}
               value={stats.analyses_total}
-              hint={`${stats.analyses_30d} in last 30 days`}
+              hint={t("admin.analysesHint", { n: stats.analyses_30d })}
               icon={<ImageIcon className="h-4 w-4" />}
             />
           </div>
 
           <section className="mt-6">
             <div className="rounded-3xl bg-card border border-border/60 p-6 shadow-soft">
-              <p className="text-[11px] uppercase tracking-[0.28em] text-accent">Subscribers by plan</p>
-              <h3 className="font-display text-2xl mt-2">Breakdown</h3>
+              <p className="text-[11px] uppercase tracking-[0.28em] text-accent">{t("admin.byPlan")}</p>
+              <h3 className="font-display text-2xl mt-2">{t("admin.breakdown")}</h3>
               {Object.keys(stats.subscriptions_by_plan).length === 0 ? (
-                <p className="mt-4 text-sm text-muted-foreground">No active subscribers yet.</p>
+                <p className="mt-4 text-sm text-muted-foreground">{t("admin.noSubs")}</p>
               ) : (
                 <ul className="mt-4 divide-y divide-border/60">
                   {Object.entries(stats.subscriptions_by_plan).map(([plan, n]) => (

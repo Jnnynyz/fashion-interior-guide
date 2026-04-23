@@ -119,6 +119,71 @@ export type Database = {
         }
         Relationships: []
       }
+      promo_codes: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          credits: number
+          expires_at: string | null
+          id: string
+          max_redemptions: number | null
+          redemption_count: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          credits?: number
+          expires_at?: string | null
+          id?: string
+          max_redemptions?: number | null
+          redemption_count?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          credits?: number
+          expires_at?: string | null
+          id?: string
+          max_redemptions?: number | null
+          redemption_count?: number
+        }
+        Relationships: []
+      }
+      promo_redemptions: {
+        Row: {
+          created_at: string
+          credits_granted: number
+          id: string
+          promo_code_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credits_granted: number
+          id?: string
+          promo_code_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credits_granted?: number
+          id?: string
+          promo_code_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promo_redemptions_promo_code_id_fkey"
+            columns: ["promo_code_id"]
+            isOneToOne: false
+            referencedRelation: "promo_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           cancel_at_period_end: boolean | null
@@ -188,6 +253,10 @@ export type Database = {
       has_active_subscription: {
         Args: { check_env?: string; user_uuid: string }
         Returns: boolean
+      }
+      redeem_promo_code: {
+        Args: { _code: string; _user_id: string }
+        Returns: Json
       }
     }
     Enums: {

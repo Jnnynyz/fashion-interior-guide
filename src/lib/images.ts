@@ -1,5 +1,6 @@
 import { Capacitor } from "@capacitor/core";
 import { Media } from "@capacitor-community/media";
+import { Filesystem, Directory } from "@capacitor/filesystem";
 
 type DisplayImageOptions = {
   rotateLandscapePortrait?: boolean;

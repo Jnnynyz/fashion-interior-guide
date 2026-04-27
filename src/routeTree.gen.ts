@@ -20,6 +20,7 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ResultsGuestRouteImport } from './routes/results.guest'
 import { Route as ResultsIdRouteImport } from './routes/results.$id'
 
 const UploadRoute = UploadRouteImport.update({
@@ -77,6 +78,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResultsGuestRoute = ResultsGuestRouteImport.update({
+  id: '/results/guest',
+  path: '/results/guest',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResultsIdRoute = ResultsIdRouteImport.update({
   id: '/results/$id',
   path: '/results/$id',
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/upload': typeof UploadRoute
   '/results/$id': typeof ResultsIdRoute
+  '/results/guest': typeof ResultsGuestRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/upload': typeof UploadRoute
   '/results/$id': typeof ResultsIdRoute
+  '/results/guest': typeof ResultsGuestRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/upload': typeof UploadRoute
   '/results/$id': typeof ResultsIdRoute
+  '/results/guest': typeof ResultsGuestRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/upload'
     | '/results/$id'
+    | '/results/guest'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/upload'
     | '/results/$id'
+    | '/results/guest'
   id:
     | '__root__'
     | '/'
@@ -169,6 +180,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/upload'
     | '/results/$id'
+    | '/results/guest'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -184,6 +196,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   UploadRoute: typeof UploadRoute
   ResultsIdRoute: typeof ResultsIdRoute
+  ResultsGuestRoute: typeof ResultsGuestRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -265,6 +278,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/results/guest': {
+      id: '/results/guest'
+      path: '/results/guest'
+      fullPath: '/results/guest'
+      preLoaderRoute: typeof ResultsGuestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/results/$id': {
       id: '/results/$id'
       path: '/results/$id'
@@ -288,6 +308,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   UploadRoute: UploadRoute,
   ResultsIdRoute: ResultsIdRoute,
+  ResultsGuestRoute: ResultsGuestRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

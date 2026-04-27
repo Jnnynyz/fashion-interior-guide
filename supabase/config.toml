@@ -3,7 +3,13 @@ project_id = "jjsmiryavfgkvgdshzeq"
 [functions.analyze-image]
 verify_jwt = false
 
+[functions.analyze-image-public]
+verify_jwt = false
+
 [functions.generate-after-image]
+verify_jwt = false
+
+[functions.generate-after-image-public]
 verify_jwt = false
 
 [functions.payments-webhook]

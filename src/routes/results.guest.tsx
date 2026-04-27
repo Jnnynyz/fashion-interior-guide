@@ -1,0 +1,319 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { Plus, Minus, Sparkles, RotateCw, Download, ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
+import { AppShell } from "@/components/AppShell";
+import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
+import { saveGeneratedImage } from "@/lib/images";
+import {
+  GUEST_FREE_LIMIT,
+  clearGuestAnalysis,
+  getGuestAnalysis,
+  getGuestRemaining,
+  setGuestAnalysis,
+  type GuestAnalysis,
+} from "@/lib/guest";
+
+export const Route = createFileRoute("/results/guest")({
+  head: () => ({
+    meta: [
+      { title: "Your free analysis — What's Missing" },
+      { name: "description", content: "Your free styling analysis. Sign up to save your results." },
+    ],
+  }),
+  component: GuestResultsPage,
+});
+
+type Item = { title: string; reason: string };
+
+function GuestResultsPage() {
+  const { user, loading } = useAuth();
+  const { t } = useI18n();
+  const navigate = useNavigate();
+  const [data, setData] = useState<GuestAnalysis | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [remaining] = useState<number>(getGuestRemaining());
+
+  // Authed users have a real history — send them away from the guest view
+  useEffect(() => {
+    if (!loading && user) {
+      navigate({ to: "/upload" });
+      return;
+    }
+    setData(getGuestAnalysis());
+  }, [loading, user, navigate]);
+
+  const onGenerateAfter = async () => {
+    if (!data || generating) return;
+    setGenerating(true);
+    try {
+      const { data: res, error } = await supabase.functions.invoke(
+        "generate-after-image-public",
+        {
+          body: {
+            image: data.image,
+            category: data.category,
+            missing: data.missing,
+            remove: data.remove,
+          },
+        },
+      );
+      if (error) throw error;
+      const r = res as { error?: string; after_image_url?: string };
+      if (r.error) {
+        if (/402|credits/i.test(r.error)) toast.error(t("results.noCredits"));
+        else if (/429|rate/i.test(r.error)) toast.error(t("results.rate"));
+        else toast.error(r.error);
+        return;
+      }
+      if (!r.after_image_url) {
+        toast.error(t("results.noImage"));
+        return;
+      }
+      const next = { ...data, after_image_url: r.after_image_url };
+      setData(next);
+      setGuestAnalysis(next);
+      toast.success(t("results.afterReady"));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("upload.err.failed"));
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const onDownloadAfter = async () => {
+    if (!data?.after_image_url) return;
+    try {
+      const method = await saveGeneratedImage(data.after_image_url, "whats-missing-after.png");
+      toast.success(method === "camera-roll" ? t("results.savedRoll") : t("results.downloaded"));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("upload.err.failed"));
+    }
+  };
+
+  if (!data) {
+    return (
+      <AppShell>
+        <div className="pt-20 text-center">
+          <p className="text-muted-foreground">{t("results.notFound")}</p>
+          <Link to="/upload" className="text-accent underline mt-3 inline-block">
+            {t("results.startNew")}
+          </Link>
+        </div>
+      </AppShell>
+    );
+  }
+
+  return (
+    <AppShell>
+      <div className="flex items-center justify-between pt-2">
+        <Link
+          to="/upload"
+          className="text-xs uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> {t("results.again")}
+        </Link>
+        <span className="text-[11px] uppercase tracking-[0.22em] text-accent">
+          {t("upload.guestRemaining", { n: String(remaining) })}
+        </span>
+      </div>
+
+      <div className="mt-4 rounded-3xl overflow-hidden bg-card border border-border/60 shadow-soft">
+        <div className="aspect-[4/5] bg-muted relative overflow-hidden">
+          <img
+            src={data.image}
+            alt="Your upload"
+            style={{ imageOrientation: "from-image" }}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          {data.score !== null && (
+            <div className="absolute top-3 right-3 bg-background/90 backdrop-blur rounded-full px-3 py-1.5 text-xs">
+              <span className="text-muted-foreground">{t("results.score")}</span>
+              <span className="font-display text-base">{data.score}</span>
+              <span className="text-muted-foreground">/100</span>
+            </div>
+          )}
+        </div>
+        <div className="p-5">
+          <p className="text-[11px] uppercase tracking-[0.28em] text-accent">
+            {data.category === "outfit"
+              ? t("results.summary.outfit")
+              : t("results.summary.interior")}
+          </p>
+          <p className="font-display text-xl mt-2 leading-snug text-balance">{data.summary}</p>
+        </div>
+      </div>
+
+      <Section
+        title={t("results.missing.title")}
+        accent
+        icon={<Plus className="h-3.5 w-3.5" />}
+        items={data.missing}
+        empty={t("results.missing.empty")}
+      />
+      <Section
+        title={t("results.remove.title")}
+        icon={<Minus className="h-3.5 w-3.5" />}
+        items={data.remove}
+        empty={t("results.remove.empty")}
+      />
+
+      <section className="mt-8">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="h-6 w-6 rounded-full grid place-items-center bg-secondary text-foreground">
+              <Sparkles className="h-3.5 w-3.5" />
+            </span>
+            <h2 className="font-display text-2xl">{t("results.after")}</h2>
+          </div>
+          {data.after_image_url && !generating && (
+            <span className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+              {t("results.aiPreview")}
+            </span>
+          )}
+        </div>
+
+        <div className="mt-4 rounded-3xl overflow-hidden bg-card border border-border/60 shadow-soft">
+          {data.after_image_url ? (
+            <>
+              <div className="grid grid-cols-1 gap-px bg-border/60 sm:grid-cols-2">
+                <figure className="bg-card flex flex-col">
+                  <div className="aspect-[4/5] bg-muted relative overflow-hidden">
+                    <img
+                      src={data.image}
+                      alt="Before"
+                      style={{ imageOrientation: "from-image" }}
+                      className="absolute inset-0 h-full w-full object-contain"
+                    />
+                  </div>
+                  <figcaption className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground text-center py-2">
+                    {t("results.before")}
+                  </figcaption>
+                </figure>
+                <figure className="bg-card flex flex-col">
+                  <div className="aspect-[4/5] bg-muted relative overflow-hidden">
+                    <img
+                      src={data.after_image_url}
+                      alt="After"
+                      style={{ imageOrientation: "from-image" }}
+                      className="absolute inset-0 h-full w-full object-contain"
+                    />
+                    <div className="absolute top-2 right-2 bg-background/90 backdrop-blur rounded-full px-2 py-0.5 text-[10px] inline-flex items-center gap-1">
+                      <Sparkles className="h-2.5 w-2.5 text-accent" /> AI
+                    </div>
+                  </div>
+                  <figcaption className="text-[10px] uppercase tracking-[0.22em] text-accent text-center py-2">
+                    {t("results.afterCap")}
+                  </figcaption>
+                </figure>
+              </div>
+              <div className="p-4 space-y-3">
+                <button
+                  onClick={onDownloadAfter}
+                  className="w-full inline-flex items-center justify-center gap-2 h-12 rounded-full bg-primary text-primary-foreground font-medium tracking-wide shadow-soft hover:opacity-90 transition"
+                >
+                  <Download className="h-4 w-4" /> {t("results.save")}
+                </button>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground">{t("results.disclaimer")}</p>
+                  <button
+                    onClick={onGenerateAfter}
+                    disabled={generating}
+                    className="text-xs uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5"
+                  >
+                    <RotateCw className="h-3 w-3" /> {t("results.redo")}
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : generating ? (
+            <div className="p-6">
+              <Skeleton className="aspect-[4/5] w-full rounded-2xl" />
+              <p className="text-sm text-muted-foreground text-center mt-4">{t("results.styling")}</p>
+            </div>
+          ) : (
+            <div className="p-8 text-center">
+              <div className="aspect-[4/5] rounded-2xl bg-muted/60 grid place-items-center mb-5">
+                <Sparkles className="h-7 w-7 text-muted-foreground" />
+              </div>
+              <p className="font-display text-xl leading-snug">{t("results.see")}</p>
+              <p className="text-sm text-muted-foreground mt-2">{t("results.gen.lede")}</p>
+              <button
+                onClick={onGenerateAfter}
+                className="mt-5 inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full bg-primary text-primary-foreground font-medium tracking-wide shadow-soft hover:opacity-90 transition"
+              >
+                <Sparkles className="h-4 w-4" /> {t("results.gen.cta")}
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <div className="mt-10 mb-4 rounded-3xl bg-card border border-border/60 p-5 shadow-soft text-center">
+        <p className="font-display text-xl leading-snug">{t("guest.signupCta.title")}</p>
+        <p className="text-sm text-muted-foreground mt-2">
+          {t("guest.signupCta.body", { n: String(GUEST_FREE_LIMIT) })}
+        </p>
+        <Link
+          to="/auth"
+          onClick={() => clearGuestAnalysis()}
+          className="mt-4 inline-flex w-full items-center justify-center h-12 rounded-full bg-primary text-primary-foreground font-medium tracking-wide shadow-soft hover:opacity-90 transition"
+        >
+          {t("guest.signupCta.button")}
+        </Link>
+      </div>
+
+      <Link
+        to="/upload"
+        className="mb-4 inline-flex w-full items-center justify-center h-12 rounded-full bg-secondary text-foreground font-medium tracking-wide hover:opacity-90 transition"
+      >
+        {t("results.again")}
+      </Link>
+    </AppShell>
+  );
+}
+
+function Section({
+  title,
+  icon,
+  items,
+  empty,
+  accent,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  items: Item[];
+  empty: string;
+  accent?: boolean;
+}) {
+  return (
+    <section className="mt-8">
+      <div className="flex items-center gap-2">
+        <span
+          className={
+            "h-6 w-6 rounded-full grid place-items-center " +
+            (accent ? "bg-accent text-accent-foreground" : "bg-secondary text-foreground")
+          }
+        >
+          {icon}
+        </span>
+        <h2 className="font-display text-2xl">{title}</h2>
+      </div>
+      {items.length === 0 ? (
+        <p className="text-sm text-muted-foreground mt-3 ml-8">{empty}</p>
+      ) : (
+        <ul className="mt-4 space-y-3">
+          {items.map((it, i) => (
+            <li key={i} className="rounded-2xl bg-card border border-border/60 p-4 shadow-soft">
+              <p className="font-display text-lg leading-tight">{it.title}</p>
+              <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">{it.reason}</p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}

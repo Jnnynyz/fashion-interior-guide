@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Shirt, Home, ImagePlus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -10,6 +10,13 @@ import { useI18n } from "@/lib/i18n";
 import { getPaymentsEnv } from "@/lib/paddle";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import {
+  GUEST_FREE_LIMIT,
+  fileToDataUrl,
+  getGuestRemaining,
+  incrementGuestUsed,
+  setGuestAnalysis,
+} from "@/lib/guest";
 
 export const Route = createFileRoute("/upload")({
   head: () => ({
@@ -33,15 +40,30 @@ function UploadPage() {
   const [preview, setPreview] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [paywall, setPaywall] = useState(false);
+  const [guestRemaining, setGuestRemaining] = useState<number>(GUEST_FREE_LIMIT);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Recompute guest remaining on mount / when auth status changes
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth" });
-  }, [user, loading, navigate]);
+    if (!user) setGuestRemaining(getGuestRemaining());
+  }, [user]);
 
+  // Authed: show paywall if no credits & no subscription
   useEffect(() => {
+    if (!user) {
+      setPaywall(false);
+      return;
+    }
     if (!entLoading) setPaywall(!hasSubscription && credits <= 0);
-  }, [entLoading, hasSubscription, credits]);
+  }, [user, entLoading, hasSubscription, credits]);
+
+  // Guests: if they've used all 5 free analyses, send them to /auth
+  useEffect(() => {
+    if (loading) return;
+    if (!user && getGuestRemaining() <= 0) {
+      navigate({ to: "/auth" });
+    }
+  }, [loading, user, navigate]);
 
   useEffect(() => {
     if (!file) {
@@ -66,7 +88,42 @@ function UploadPage() {
     setFile(f);
   };
 
-  const analyze = async () => {
+  const analyzeAsGuest = async () => {
+    if (!file) return;
+    if (getGuestRemaining() <= 0) {
+      navigate({ to: "/auth" });
+      return;
+    }
+    setBusy(true);
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      const { data, error } = await supabase.functions.invoke("analyze-image-public", {
+        body: { image: dataUrl, category, language: lang },
+      });
+      if (error) throw error;
+      if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
+
+      incrementGuestUsed();
+      setGuestRemaining(getGuestRemaining());
+      setGuestAnalysis({
+        category,
+        image: dataUrl,
+        missing: data.missing ?? [],
+        remove: data.remove ?? [],
+        summary: data.summary ?? "",
+        score: data.score ?? null,
+        after_image_url: null,
+      });
+      navigate({ to: "/results/guest" });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : t("upload.err.failed");
+      toast.error(msg);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const analyzeAsUser = async () => {
     if (!file || !user) return;
     setBusy(true);
     try {
@@ -122,6 +179,8 @@ function UploadPage() {
     }
   };
 
+  const analyze = () => (user ? analyzeAsUser() : analyzeAsGuest());
+
   if (paywall) {
     return (
       <AppShell>
@@ -135,6 +194,17 @@ function UploadPage() {
   return (
     <AppShell>
       <div className="pt-4">
+        {!user && !loading && (
+          <div className="mb-5 rounded-2xl border border-border/60 bg-card px-4 py-3 text-sm flex items-center justify-between gap-3">
+            <span className="text-foreground/85">
+              {t("upload.guestRemaining", { n: String(guestRemaining) })}
+            </span>
+            <Link to="/auth" className="text-xs uppercase tracking-[0.22em] text-accent hover:opacity-80">
+              {t("upload.guestSignup")}
+            </Link>
+          </div>
+        )}
+
         <p className="text-[11px] uppercase tracking-[0.28em] text-accent">{t("upload.step1")}</p>
         <h1 className="font-display text-4xl mt-2">{t("upload.choose")}</h1>
 

@@ -93,6 +93,13 @@ const dict = {
     "upload.err.image": "Please choose an image file.",
     "upload.err.size": "Image must be under 10MB.",
     "upload.err.failed": "Analysis failed",
+    "upload.guestRemaining": "{n} free analyses left",
+    "upload.guestSignup": "Sign up",
+
+    // Guest signup nudge
+    "guest.signupCta.title": "Love your results?",
+    "guest.signupCta.body": "Create a free account to save your history and keep going. You get {n} free analyses, no card required.",
+    "guest.signupCta.button": "Create your free account",
 
     // Paywall
     "paywall.eyebrow": "Premium",
@@ -292,6 +299,13 @@ const dict = {
     "upload.err.image": "Välj en bildfil.",
     "upload.err.size": "Bilden måste vara under 10 MB.",
     "upload.err.failed": "Analysen misslyckades",
+    "upload.guestRemaining": "{n} gratisanalyser kvar",
+    "upload.guestSignup": "Skapa konto",
+
+    // Guest signup nudge
+    "guest.signupCta.title": "Gillar du ditt resultat?",
+    "guest.signupCta.body": "Skapa ett gratiskonto för att spara din historik och fortsätta. Du får {n} gratisanalyser, inget kort krävs.",
+    "guest.signupCta.button": "Skapa ditt gratiskonto",
 
     "paywall.eyebrow": "Premium",
     "paywall.headline": "Du har använt alla dina gratis analyser.",

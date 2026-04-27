@@ -241,8 +241,21 @@ function RedeemCard({ onRedeemed }: { onRedeemed: () => Promise<void> }) {
       const { data, error } = await supabase.functions.invoke("redeem-promo", {
         body: { code: code.trim() },
       });
-      if (error || (data as { error?: string })?.error) {
-        toast.error((data as { error?: string })?.error || t("promo.error"));
+      let errMsg: string | undefined = (data as { error?: string })?.error;
+      if (error && !errMsg) {
+        // FunctionsHttpError: parse the response body for the server's error message
+        try {
+          const ctx = (error as { context?: Response }).context;
+          if (ctx && typeof ctx.json === "function") {
+            const body = await ctx.clone().json();
+            errMsg = body?.error;
+          }
+        } catch {
+          // ignore parse errors
+        }
+      }
+      if (error || errMsg) {
+        toast.error(errMsg || t("promo.error"));
         return;
       }
       toast.success(t("promo.success", { n: (data as { credits: number }).credits }));

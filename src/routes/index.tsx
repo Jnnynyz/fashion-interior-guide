@@ -4,6 +4,7 @@ import { AppShell } from "@/components/AppShell";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
+import { useReveal } from "@/hooks/useReveal";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -27,6 +28,7 @@ export const Route = createFileRoute("/")({
 function Index() {
   const { user } = useAuth();
   const { t } = useI18n();
+  useReveal();
   return (
     <AppShell>
       {/* Hero */}
@@ -66,12 +68,12 @@ function Index() {
       </section>
 
       {/* Before/After slider */}
-      <section className="mt-2 mb-10">
+      <section className="mt-2 mb-10 reveal">
         <BeforeAfterSlider />
       </section>
 
       {/* Category cards */}
-      <section className="grid sm:grid-cols-2 gap-4">
+      <section className="grid sm:grid-cols-2 gap-4 reveal">
         <CategoryCard
           to={user ? "/upload" : "/auth"}
           icon={<Shirt className="h-5 w-5" strokeWidth={1.4} />}
@@ -89,7 +91,7 @@ function Index() {
       </section>
 
       {/* Gallery */}
-      <section className="mt-6">
+      <section className="mt-6 reveal">
         <p className="text-[11px] uppercase tracking-[0.22em] text-terracotta font-medium mb-4">Examples</p>
         <div className="gallery">
           {[
@@ -112,7 +114,7 @@ function Index() {
       </section>
 
       {/* Testimonials */}
-      <section className="mt-6">
+      <section className="mt-6 reveal">
         <p className="text-[11px] uppercase tracking-[0.22em] text-terracotta font-medium mb-4">What people say</p>
         <div className="grid sm:grid-cols-3 gap-4">
           {[
@@ -136,7 +138,7 @@ function Index() {
       </section>
 
       {/* How it works */}
-      <section className="mt-6 p-1.5 rounded-[28px] bg-cream-100 border border-[var(--line)]">
+      <section className="mt-6 reveal p-1.5 rounded-[28px] bg-cream-100 border border-[var(--line)]">
         <div className="bg-cream-50 rounded-[22px] p-8 shadow-[var(--shadow-card)]">
           <p className="text-[11px] uppercase tracking-[0.22em] text-terracotta font-medium">Process</p>
           <h2 className="font-display text-[32px] font-normal mt-1 leading-tight">{t("index.steps.title")}</h2>

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Sparkles, Shirt, Home } from "lucide-react";
+import { ArrowRight, Shirt, Home } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
@@ -64,15 +64,19 @@ function Index() {
         </div>
       </section>
 
-      {/* Feature cards */}
+      {/* Category cards */}
       <section className="grid sm:grid-cols-2 gap-4">
-        <FeatureCard
-          icon={<Shirt className="h-4 w-4" strokeWidth={1.4} />}
+        <CategoryCard
+          to={user ? "/upload" : "/auth"}
+          icon={<Shirt className="h-5 w-5" strokeWidth={1.4} />}
+          eyebrow={t("index.feature.outfit.eyebrow") || "Fashion"}
           title={t("index.feature.outfit.title")}
           body={t("index.feature.outfit.body")}
         />
-        <FeatureCard
-          icon={<Home className="h-4 w-4" strokeWidth={1.4} />}
+        <CategoryCard
+          to={user ? "/upload" : "/auth"}
+          icon={<Home className="h-5 w-5" strokeWidth={1.4} />}
+          eyebrow={t("index.feature.interior.eyebrow") || "Interior"}
           title={t("index.feature.interior.title")}
           body={t("index.feature.interior.body")}
         />
@@ -96,16 +100,34 @@ function Index() {
   );
 }
 
-function FeatureCard({ icon, title, body }: { icon: React.ReactNode; title: string; body: string }) {
+function CategoryCard({
+  to, icon, eyebrow, title, body,
+}: {
+  to: string;
+  icon: React.ReactNode;
+  eyebrow: string;
+  title: string;
+  body: string;
+}) {
   return (
-    <div className="p-1.5 rounded-[28px] bg-cream-100 border border-[var(--line)] transition-transform duration-300 hover:-translate-y-0.5">
-      <div className="bg-cream-50 rounded-[22px] p-6 shadow-[var(--shadow-card)]">
-        <div className="h-9 w-9 rounded-full bg-cream-100 text-ink-700 grid place-items-center">
+    <Link
+      to={to}
+      className="group block p-1.5 rounded-[28px] bg-cream-100 border border-[var(--line)] transition-transform duration-300 hover:-translate-y-1"
+    >
+      <div className="bg-cream-50 rounded-[22px] p-6 shadow-[var(--shadow-card)] flex flex-col h-full min-h-[200px]">
+        <div className="h-10 w-10 rounded-full bg-cream-100 text-ink-700 grid place-items-center border border-[var(--line)]">
           {icon}
         </div>
-        <h3 className="font-display text-[26px] font-normal mt-4 leading-tight">{title}</h3>
-        <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{body}</p>
+        <p className="text-[11px] uppercase tracking-[0.22em] text-terracotta font-medium mt-4">{eyebrow}</p>
+        <h3 className="font-display text-[28px] font-normal mt-1 leading-tight">{title}</h3>
+        <p className="text-sm text-muted-foreground mt-2 leading-relaxed flex-1">{body}</p>
+        <div className="mt-5 flex items-center gap-1.5 text-[13px] text-ink-700 font-medium">
+          <span className="tracking-[0.04em]">Analyse</span>
+          <span className="grid place-items-center w-6 h-6 rounded-full bg-ink-900 text-cream-50 transition-transform duration-200 group-hover:translate-x-0.5">
+            <ArrowRight className="h-3 w-3" strokeWidth={1.6} />
+          </span>
+        </div>
       </div>
-    </div>
+    </Link>
   );
 }

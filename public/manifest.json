@@ -1,0 +1,17 @@
+{
+  "name": "What's Missing",
+  "short_name": "What's Missing",
+  "description": "Upload a photo of an outfit or room and get warm, Scandinavian-inspired styling suggestions.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf7f4",
+  "theme_color": "#faf7f4",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

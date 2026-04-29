@@ -1,6 +1,6 @@
-// Analyze an outfit or interior image using Lovable AI Gateway (Gemini vision)
-// Returns structured JSON with what's missing, what to remove, and a style summary.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+// Public (unauthenticated) outfit/interior analysis for guest free trial.
+// Accepts a base64 data URL or http(s) image URL. No DB writes, no credit consumption.
+// Frontend enforces a 5-use limit per browser via localStorage; this is a soft trial only.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,72 +14,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-
-    // Verify caller's JWT — derive userId from the verified token, never trust the body.
-    const authHeader = req.headers.get("Authorization") ?? "";
-    const token = authHeader.replace(/^Bearer\s+/i, "");
-    if (!token) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const userClient = createClient(SUPABASE_URL, ANON_KEY, {
-      global: { headers: { Authorization: `Bearer ${token}` } },
-    });
-    const { data: userData, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userData?.user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const userId = userData.user.id;
-
-    const { imagePath, category, environment, language } = await req.json();
-    if (!imagePath || !category) {
-      return new Response(JSON.stringify({ error: "imagePath and category are required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const lang = language === "sv" ? "sv" : "en";
-    const langName = lang === "sv" ? "Swedish (svenska)" : "English";
-
-    // Path must be owned by the authenticated user (e.g. "<userId>/...")
-    if (typeof imagePath !== "string" || !imagePath.startsWith(`${userId}/`)) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
-
-    // Entitlement check — userId comes from verified JWT only
-    const env = environment === "live" ? "live" : "sandbox";
-    const { data: ok, error: rpcErr } = await admin.rpc("consume_credit", {
-      user_uuid: userId,
-      related: null,
-      check_env: env,
-    });
-    if (rpcErr) {
-      console.error("consume_credit error", rpcErr);
-      return new Response(JSON.stringify({ error: "Could not check credits" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    if (!ok) {
-      return new Response(JSON.stringify({ error: "no_credits" }), {
-        status: 402,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       return new Response(JSON.stringify({ error: "LOVABLE_API_KEY not configured" }), {
@@ -88,18 +22,29 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Create a short-lived signed URL for the AI model to fetch the image.
-    const { data: signed, error: signErr } = await admin.storage
-      .from("analysis-images")
-      .createSignedUrl(imagePath, 600);
-    if (signErr || !signed?.signedUrl) {
-      console.error("sign url error", signErr);
-      return new Response(JSON.stringify({ error: "Could not access image" }), {
-        status: 500,
+    const { image, category, language } = await req.json();
+    if (!image || typeof image !== "string" || !category) {
+      return new Response(JSON.stringify({ error: "image and category are required" }), {
+        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const imageUrl = signed.signedUrl;
+    if (category !== "outfit" && category !== "interior") {
+      return new Response(JSON.stringify({ error: "invalid category" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    // Cap payload at ~10MB base64 to avoid abuse
+    if (image.length > 14_000_000) {
+      return new Response(JSON.stringify({ error: "Image too large" }), {
+        status: 413,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const lang = language === "sv" ? "sv" : "en";
+    const langName = lang === "sv" ? "Swedish (svenska)" : "English";
 
     const systemPrompt =
       (category === "outfit"
@@ -117,7 +62,7 @@ Deno.serve(async (req) => {
           role: "user",
           content: [
             { type: "text", text: userPrompt },
-            { type: "image_url", image_url: { url: imageUrl } },
+            { type: "image_url", image_url: { url: image } },
           ],
         },
       ],
@@ -132,40 +77,24 @@ Deno.serve(async (req) => {
               properties: {
                 missing: {
                   type: "array",
-                  description: "Items or elements to add for a more elevated look.",
                   items: {
                     type: "object",
-                    properties: {
-                      title: { type: "string" },
-                      reason: { type: "string" },
-                    },
+                    properties: { title: { type: "string" }, reason: { type: "string" } },
                     required: ["title", "reason"],
                     additionalProperties: false,
                   },
                 },
                 remove: {
                   type: "array",
-                  description: "Items or elements that detract and should be removed or swapped.",
                   items: {
                     type: "object",
-                    properties: {
-                      title: { type: "string" },
-                      reason: { type: "string" },
-                    },
+                    properties: { title: { type: "string" }, reason: { type: "string" } },
                     required: ["title", "reason"],
                     additionalProperties: false,
                   },
                 },
-                summary: {
-                  type: "string",
-                  description: "A 2-3 sentence elegant style summary.",
-                },
-                score: {
-                  type: "integer",
-                  description: "Overall current styling score 0-100.",
-                  minimum: 0,
-                  maximum: 100,
-                },
+                summary: { type: "string" },
+                score: { type: "integer", minimum: 0, maximum: 100 },
               },
               required: ["missing", "remove", "summary", "score"],
               additionalProperties: false,
@@ -194,7 +123,7 @@ Deno.serve(async (req) => {
       }
       if (resp.status === 402) {
         return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Please add credits in Lovable." }),
+          JSON.stringify({ error: "AI credits exhausted." }),
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
@@ -220,7 +149,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
-    console.error("analyze-image error", e);
+    console.error("analyze-image-public error", e);
     return new Response(
       JSON.stringify({ error: "An unexpected error occurred. Please try again." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },

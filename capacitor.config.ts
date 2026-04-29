@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: "What's Missing",
   webDir: 'dist',
   server: {
-    url: 'https://fashion-interior-guide.lovable.app',
+    url: 'https://whatsmissing.info',
     cleartext: false
   }
 };

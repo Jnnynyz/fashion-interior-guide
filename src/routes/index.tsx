@@ -28,30 +28,35 @@ function Index() {
   const { t } = useI18n();
   return (
     <AppShell>
-      <section className="pt-6 pb-12">
-        <p className="text-[11px] uppercase tracking-[0.28em] text-accent mb-5">
+      {/* Hero */}
+      <section className="pt-10 pb-14">
+        <p className="text-[11px] uppercase tracking-[0.22em] text-terracotta font-medium mb-6">
           {t("index.eyebrow")}
         </p>
-        <h1 className="font-display text-5xl sm:text-6xl leading-[1.02] text-balance">
+        <h1 className="font-display font-normal leading-[1.02] text-balance" style={{ fontSize: "clamp(48px, 7vw, 88px)", letterSpacing: "-0.015em" }}>
           {t("index.h1.line1")}
           <br />
-          {t("index.h1.line2")}
+          <em className="not-italic text-terracotta">{t("index.h1.line2")}</em>
         </h1>
-        <p className="mt-5 text-base text-muted-foreground max-w-md text-balance">
+        <p className="mt-6 text-[17px] text-muted-foreground max-w-md text-balance leading-[1.6]">
           {t("index.lede")}
         </p>
 
-        <div className="mt-8 flex flex-col gap-3">
+        <div className="mt-10 flex flex-col sm:flex-row gap-3">
           <Link
             to={user ? "/upload" : "/auth"}
-            className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full bg-primary text-primary-foreground font-medium tracking-wide shadow-soft hover:opacity-90 transition"
+            className="group inline-flex items-center gap-2.5 px-5 py-3.5 rounded-full bg-ink-900 text-cream-50 text-sm font-medium transition-all duration-150 hover:bg-ink-800 active:scale-[0.97]"
+            style={{ transitionTimingFunction: "var(--ease-out-quint)" }}
           >
-            {t("index.cta.begin")} <ArrowRight className="h-4 w-4" />
+            {t("index.cta.begin")}
+            <span className="grid place-items-center w-6 h-6 rounded-full bg-white/10 transition-transform duration-200 group-hover:translate-x-0.5">
+              <ArrowRight className="h-3 w-3" strokeWidth={1.6} />
+            </span>
           </Link>
           {!user && (
             <Link
               to="/auth"
-              className="inline-flex items-center justify-center h-11 px-6 rounded-full border border-border bg-card text-foreground/80 hover:text-foreground transition"
+              className="inline-flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-full bg-transparent text-ink-900 text-sm font-medium border border-[var(--line-strong)] hover:bg-cream-100 transition-colors"
             >
               {t("index.cta.have")}
             </Link>
@@ -59,51 +64,48 @@ function Index() {
         </div>
       </section>
 
-      <section className="grid sm:grid-cols-2 gap-4 mt-4">
+      {/* Feature cards */}
+      <section className="grid sm:grid-cols-2 gap-4">
         <FeatureCard
-          icon={<Shirt className="h-4 w-4" />}
+          icon={<Shirt className="h-4 w-4" strokeWidth={1.4} />}
           title={t("index.feature.outfit.title")}
           body={t("index.feature.outfit.body")}
         />
         <FeatureCard
-          icon={<Home className="h-4 w-4" />}
+          icon={<Home className="h-4 w-4" strokeWidth={1.4} />}
           title={t("index.feature.interior.title")}
           body={t("index.feature.interior.body")}
         />
       </section>
 
-      <section className="mt-10 rounded-3xl bg-card p-6 sm:p-8 shadow-soft border border-border/60">
-        <Sparkles className="h-4 w-4 text-accent" />
-        <h2 className="font-display text-2xl mt-3">{t("index.steps.title")}</h2>
-        <ol className="mt-5 space-y-4 text-sm">
-          {[t("index.step.1"), t("index.step.2"), t("index.step.3")].map((s, i) => (
-            <li key={i} className="flex gap-3">
-              <span className="font-display text-accent text-base w-5">{i + 1}</span>
-              <span className="text-foreground/80">{s}</span>
-            </li>
-          ))}
-        </ol>
+      {/* How it works */}
+      <section className="mt-6 p-1.5 rounded-[28px] bg-cream-100 border border-[var(--line)]">
+        <div className="bg-cream-50 rounded-[22px] p-8 shadow-[var(--shadow-card)]">
+          <p className="text-[11px] uppercase tracking-[0.22em] text-terracotta font-medium">{t("index.steps.title")}</p>
+          <ol className="mt-6 space-y-5">
+            {[t("index.step.1"), t("index.step.2"), t("index.step.3")].map((s, i) => (
+              <li key={i} className="flex gap-4 items-start">
+                <span className="font-display text-[26px] leading-none text-terracotta w-7 shrink-0">{i + 1}</span>
+                <span className="text-sm text-muted-foreground leading-relaxed pt-1">{s}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
       </section>
     </AppShell>
   );
 }
 
-function FeatureCard({
-  icon,
-  title,
-  body,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  body: string;
-}) {
+function FeatureCard({ icon, title, body }: { icon: React.ReactNode; title: string; body: string }) {
   return (
-    <div className="rounded-3xl bg-card border border-border/60 p-6 shadow-soft">
-      <div className="h-9 w-9 rounded-full bg-secondary text-foreground grid place-items-center">
-        {icon}
+    <div className="p-1.5 rounded-[28px] bg-cream-100 border border-[var(--line)] transition-transform duration-300 hover:-translate-y-0.5">
+      <div className="bg-cream-50 rounded-[22px] p-6 shadow-[var(--shadow-card)]">
+        <div className="h-9 w-9 rounded-full bg-cream-100 text-ink-700 grid place-items-center">
+          {icon}
+        </div>
+        <h3 className="font-display text-[26px] font-normal mt-4 leading-tight">{title}</h3>
+        <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{body}</p>
       </div>
-      <h3 className="font-display text-2xl mt-4">{title}</h3>
-      <p className="text-sm text-muted-foreground mt-1.5">{body}</p>
     </div>
   );
 }

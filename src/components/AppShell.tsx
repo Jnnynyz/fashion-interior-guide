@@ -1,8 +1,9 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Sparkles, Upload, Clock, LogOut, LogIn, CreditCard, Globe } from "lucide-react";
+import { Sparkles, Upload, Clock, LogOut, LogIn, CreditCard, Globe, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useEntitlement } from "@/hooks/useEntitlement";
 import { useI18n } from "@/lib/i18n";
+import { useTheme } from "@/hooks/useTheme";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { cn } from "@/lib/utils";
 
@@ -10,6 +11,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
   const { hasSubscription, credits, loading: entLoading } = useEntitlement();
   const { lang, setLang, t } = useI18n();
+  const { theme, toggle: toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -23,22 +25,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-gradient-warm flex flex-col">
       <PaymentTestModeBanner />
-      <header className="sticky top-0 z-30 backdrop-blur bg-background/70 border-b border-border/60">
-        <div className="mx-auto max-w-3xl px-5 h-14 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 group">
-            <span className="h-7 w-7 rounded-full bg-accent text-accent-foreground grid place-items-center">
-              <Sparkles className="h-3.5 w-3.5" />
-            </span>
-            <span className="font-display text-xl tracking-tight">What's Missing</span>
+      <header className="sticky top-0 z-50 border-b border-[var(--line)] bg-[color-mix(in_oklch,var(--cream-50)_84%,transparent)] backdrop-blur-xl backdrop-saturate-[1.4]">
+        <div className="mx-auto max-w-3xl px-5 h-16 flex items-center justify-between">
+          <Link to="/" className="flex items-center group">
+            <img src="/logo.png" alt="What's Missing" className="h-14 w-auto" style={{ mixBlendMode: "multiply" }} />
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {user && !entLoading && (
               <Link
                 to="/pricing"
-                className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/60 border border-border/60"
+                className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-secondary border border-[var(--line)]"
                 title={hasSubscription ? t("nav.unlimited") : t("nav.left", { n: credits })}
               >
-                <Sparkles className="h-3 w-3 text-accent" />
+                <Sparkles className="h-3 w-3 text-accent" strokeWidth={1.6} />
                 {hasSubscription ? t("nav.unlimited") : t("nav.left", { n: credits })}
               </Link>
             )}
@@ -46,24 +45,30 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               onClick={toggleLang}
               aria-label={t("lang.label")}
               title={lang === "en" ? "Byt till svenska" : "Switch to English"}
-              className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 px-2 py-1 rounded-full border border-border/60"
+              className="w-[38px] h-[38px] rounded-full border border-[var(--line)] bg-secondary grid place-items-center text-ink-700 transition-colors hover:bg-cream-200"
             >
-              <Globe className="h-3 w-3" />
-              {lang === "en" ? t("lang.sv") : t("lang.en")}
+              <Globe className="h-3.5 w-3.5" strokeWidth={1.4} />
+            </button>
+            <button
+              onClick={toggleTheme}
+              aria-label="Toggle theme"
+              className="w-[38px] h-[38px] rounded-full border border-[var(--line)] bg-secondary grid place-items-center text-ink-700 transition-all duration-250 hover:bg-cream-200 hover:rotate-[15deg]"
+            >
+              {theme === "dark" ? <Moon className="h-4 w-4" strokeWidth={1.4} /> : <Sun className="h-4 w-4" strokeWidth={1.4} />}
             </button>
             {user ? (
               <button
                 onClick={onSignOut}
-                className="text-xs uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
+                className="w-[38px] h-[38px] rounded-full border border-[var(--line)] bg-secondary grid place-items-center text-ink-700 transition-colors hover:bg-cream-200"
               >
-                <LogOut className="h-3.5 w-3.5" /> {t("nav.signOut")}
+                <LogOut className="h-3.5 w-3.5" strokeWidth={1.4} />
               </button>
             ) : (
               <Link
                 to="/auth"
-                className="text-xs uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-ink-900 text-cream-50 text-[13px] tracking-[0.04em] transition-colors hover:bg-ink-800"
               >
-                <LogIn className="h-3.5 w-3.5" /> {t("nav.signIn")}
+                <LogIn className="h-3.5 w-3.5" strokeWidth={1.6} /> {t("nav.signIn")}
               </Link>
             )}
           </div>

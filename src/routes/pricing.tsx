@@ -46,6 +46,7 @@ const PLANS: Plan[] = [
     nameKey: "plan.half.name",
     price: "$29",
     periodKey: "plan.half.period",
+    highlight: true,
     badgeKey: "plan.half.badge",
     featureKeys: ["plan.half.f1", "plan.half.f2", "plan.half.f3"],
   },
@@ -54,7 +55,6 @@ const PLANS: Plan[] = [
     nameKey: "plan.year.name",
     price: "$39",
     periodKey: "plan.year.period",
-    highlight: true,
     badgeKey: "plan.year.badge",
     featureKeys: ["plan.year.f1", "plan.year.f2", "plan.year.f3"],
   },
@@ -123,7 +123,7 @@ function PricingPage() {
         )}
       </section>
 
-      <section className="space-y-4">
+      <section className="grid sm:grid-cols-3 gap-4 items-start">
         {PLANS.map((p) => (
           <PlanCard
             key={p.priceId}
@@ -134,22 +134,24 @@ function PricingPage() {
         ))}
       </section>
 
-      <section className="mt-8">
-        <div className="rounded-3xl bg-card border border-border/60 p-6 shadow-soft">
-          <p className="text-[11px] uppercase tracking-[0.28em] text-accent">{t("pricing.payg")}</p>
-          <h3 className="font-display text-2xl mt-2">{t("pricing.pack.title")}</h3>
-          <p className="text-sm text-muted-foreground mt-1.5"
-             dangerouslySetInnerHTML={{
-               __html: t("pricing.pack.body", { price: "<strong class='text-foreground'>$5</strong>" }),
-             }}
-          />
-          <button
-            onClick={() => handleChoose("pack_10_price")}
-            disabled={checkoutLoading}
-            className="mt-5 inline-flex w-full items-center justify-center h-11 rounded-full bg-secondary text-foreground font-medium tracking-wide hover:bg-secondary/80 transition disabled:opacity-50"
-          >
-            {checkoutLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : t("pricing.pack.cta")}
-          </button>
+      <section className="mt-6">
+        <div className="p-1.5 rounded-[28px] bg-cream-100 border border-[var(--line)]">
+          <div className="bg-cream-50 rounded-[22px] p-6 shadow-[var(--shadow-card)]">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-terracotta font-medium">{t("pricing.payg")}</p>
+            <h3 className="font-display text-[28px] font-normal mt-1">{t("pricing.pack.title")}</h3>
+            <p className="text-sm text-muted-foreground mt-2"
+               dangerouslySetInnerHTML={{
+                 __html: t("pricing.pack.body", { price: "<strong class='text-foreground'>$5</strong>" }),
+               }}
+            />
+            <button
+              onClick={() => handleChoose("pack_10_price")}
+              disabled={checkoutLoading}
+              className="mt-5 inline-flex w-full items-center justify-center gap-2 h-11 rounded-full bg-ink-900 text-cream-50 text-sm font-medium hover:bg-ink-800 transition disabled:opacity-50"
+            >
+              {checkoutLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : t("pricing.pack.cta")}
+            </button>
+          </div>
         </div>
       </section>
 
@@ -162,68 +164,55 @@ function PricingPage() {
   );
 }
 
-function PlanCard({
-  plan,
-  disabled,
-  onChoose,
-}: {
-  plan: Plan;
-  disabled: boolean;
-  onChoose: () => void;
-}) {
+function PlanCard({ plan, disabled, onChoose }: { plan: Plan; disabled: boolean; onChoose: () => void }) {
   const { t } = useI18n();
   return (
-    <div
-      className={cn(
-        "rounded-3xl p-6 shadow-soft border",
-        plan.highlight ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border/60",
-      )}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h3 className="font-display text-2xl">{t(plan.nameKey)}</h3>
-          <p className={cn("text-sm mt-1", plan.highlight ? "text-primary-foreground/75" : "text-muted-foreground")}>
-            <span className="font-display text-2xl text-foreground/100" style={{ color: "inherit" }}>
-              {plan.price}
-            </span>{" "}
-            {t(plan.periodKey)}
-          </p>
-        </div>
-        {plan.badgeKey && (
-          <span
-            className={cn(
-              "text-[10px] uppercase tracking-[0.22em] px-2.5 py-1 rounded-full",
-              plan.highlight
-                ? "bg-primary-foreground/15 text-primary-foreground"
-                : "bg-accent text-accent-foreground",
-            )}
-          >
+    <div className={cn(
+      "relative p-1.5 rounded-[28px] border",
+      plan.highlight ? "bg-ink-800 border-ink-700" : "bg-cream-100 border-[var(--line)]",
+    )}>
+      {plan.badgeKey && (
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+          <span className="inline-block px-3 py-1 rounded-full text-[10px] uppercase tracking-[0.18em] font-medium bg-terracotta text-cream-50 shadow-sm whitespace-nowrap">
             {t(plan.badgeKey)}
           </span>
-        )}
+        </div>
+      )}
+      <div className={cn(
+        "rounded-[22px] p-6 shadow-[var(--shadow-card)] flex flex-col",
+        plan.highlight ? "bg-ink-800" : "bg-cream-50",
+      )}>
+        <h3 className={cn("font-display text-[26px] font-normal", plan.highlight ? "text-cream-50" : "text-ink-900")}>
+          {t(plan.nameKey)}
+        </h3>
+        <p className={cn("mt-1 text-sm", plan.highlight ? "text-cream-200" : "text-muted-foreground")}>
+          <span className={cn("font-display text-[32px] font-normal", plan.highlight ? "text-cream-50" : "text-ink-900")}>
+            {plan.price}
+          </span>{" "}{t(plan.periodKey)}
+        </p>
+
+        <ul className="mt-5 space-y-2.5 text-sm flex-1">
+          {plan.featureKeys.map((f) => (
+            <li key={f} className="flex items-start gap-2.5">
+              <Check className={cn("h-4 w-4 mt-0.5 shrink-0", plan.highlight ? "text-terracotta" : "text-terracotta")} strokeWidth={2} />
+              <span className={plan.highlight ? "text-cream-200" : "text-ink-700"}>{t(f)}</span>
+            </li>
+          ))}
+        </ul>
+
+        <button
+          onClick={onChoose}
+          disabled={disabled}
+          className={cn(
+            "mt-6 w-full h-11 rounded-full text-sm font-medium transition disabled:opacity-50",
+            plan.highlight
+              ? "bg-cream-50 text-ink-900 hover:bg-cream-100"
+              : "bg-ink-900 text-cream-50 hover:bg-ink-800",
+          )}
+        >
+          {t("pricing.choose")}
+        </button>
       </div>
-
-      <ul className="mt-5 space-y-2 text-sm">
-        {plan.featureKeys.map((f) => (
-          <li key={f} className="flex items-start gap-2">
-            <Check className={cn("h-4 w-4 mt-0.5 shrink-0", plan.highlight ? "text-primary-foreground/80" : "text-accent")} />
-            <span className={cn(plan.highlight ? "text-primary-foreground/90" : "text-foreground/85")}>{t(f)}</span>
-          </li>
-        ))}
-      </ul>
-
-      <button
-        onClick={onChoose}
-        disabled={disabled}
-        className={cn(
-          "mt-6 w-full h-11 rounded-full font-medium tracking-wide transition disabled:opacity-50",
-          plan.highlight
-            ? "bg-primary-foreground text-primary hover:opacity-90"
-            : "bg-primary text-primary-foreground hover:opacity-90",
-        )}
-      >
-        {t("pricing.choose")}
-      </button>
     </div>
   );
 }
@@ -284,13 +273,13 @@ function RedeemCard({ onRedeemed }: { onRedeemed: () => Promise<void> }) {
             value={code}
             onChange={(e) => setCode(e.target.value)}
             placeholder={t("promo.placeholder")}
-            className="flex-1 h-11 rounded-full bg-secondary px-5 text-sm outline-none focus:ring-2 focus:ring-accent"
+            className="flex-1 h-11 rounded-full bg-cream-100 border border-[var(--line-strong)] px-5 text-sm outline-none focus:ring-2 focus:ring-terracotta"
             autoCapitalize="characters"
           />
           <button
             type="submit"
             disabled={loading || !code.trim()}
-            className="h-11 px-6 rounded-full bg-primary text-primary-foreground font-medium tracking-wide hover:opacity-90 transition disabled:opacity-50"
+            className="h-11 px-6 rounded-full bg-ink-900 text-cream-50 text-sm font-medium hover:bg-ink-800 transition disabled:opacity-50"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t("promo.submit")}
           </button>

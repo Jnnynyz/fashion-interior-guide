@@ -77,17 +77,79 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <main className="flex-1 mx-auto w-full max-w-3xl px-5 pb-28 pt-6">{children}</main>
 
-      <footer className={cn("mx-auto w-full max-w-3xl px-5 py-6 text-center", user ? "pb-24" : "pb-6")}>
-        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-          <Link to="/pricing" className="hover:text-foreground transition-colors">{t("footer.pricing")}</Link>
-          <span aria-hidden>·</span>
-          <Link to="/terms" className="hover:text-foreground transition-colors">{t("footer.terms")}</Link>
-          <span aria-hidden>·</span>
-          <Link to="/refunds" className="hover:text-foreground transition-colors">{t("footer.refunds")}</Link>
-          <span aria-hidden>·</span>
-          <Link to="/privacy" className="hover:text-foreground transition-colors">{t("footer.privacy")}</Link>
+      <footer className={cn("w-full border-t border-[var(--line)] mt-16", user ? "pb-24" : "pb-0")}>
+        <div className="mx-auto max-w-3xl px-5 py-12">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
+            {/* Brand */}
+            <div className="col-span-2 sm:col-span-1">
+              <img src="/logo.png" alt="What's Missing" className="h-10 w-auto mb-3" style={{ mixBlendMode: "multiply" }} />
+              <p className="text-[13px] text-muted-foreground leading-relaxed max-w-[180px]">
+                Calm, refined styling for outfits and interiors.
+              </p>
+            </div>
+
+            {/* Product */}
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.22em] text-ink-500 font-medium mb-4">Product</p>
+              <ul className="space-y-2.5">
+                {[
+                  { to: "/upload", label: "Analyse" },
+                  { to: "/pricing", label: t("footer.pricing") },
+                  { to: "/history", label: "History" },
+                ].map(l => (
+                  <li key={l.to}>
+                    <Link to={l.to} className="text-[13px] text-muted-foreground hover:text-foreground transition-colors">
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Legal */}
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.22em] text-ink-500 font-medium mb-4">Legal</p>
+              <ul className="space-y-2.5">
+                {[
+                  { to: "/terms", label: t("footer.terms") },
+                  { to: "/privacy", label: t("footer.privacy") },
+                  { to: "/refunds", label: t("footer.refunds") },
+                ].map(l => (
+                  <li key={l.to}>
+                    <Link to={l.to} className="text-[13px] text-muted-foreground hover:text-foreground transition-colors">
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Account */}
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.22em] text-ink-500 font-medium mb-4">Account</p>
+              <ul className="space-y-2.5">
+                {user ? (
+                  <li>
+                    <button onClick={onSignOut} className="text-[13px] text-muted-foreground hover:text-foreground transition-colors">
+                      {t("nav.signOut")}
+                    </button>
+                  </li>
+                ) : (
+                  <li>
+                    <Link to="/auth" className="text-[13px] text-muted-foreground hover:text-foreground transition-colors">
+                      {t("nav.signIn")}
+                    </Link>
+                  </li>
+                )}
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-10 pt-6 border-t border-[var(--line)] flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p className="text-[11px] text-muted-foreground">© {new Date().getFullYear()} What's Missing. All rights reserved.</p>
+            <p className="text-[11px] text-muted-foreground">Made with care in Scandinavia.</p>
+          </div>
         </div>
-        <p className="mt-3 text-[11px] text-muted-foreground">© {new Date().getFullYear()} JennyNystrand</p>
       </footer>
 
       {user && (

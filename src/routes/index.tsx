@@ -5,6 +5,7 @@ import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { useReveal } from "@/hooks/useReveal";
+import { InstallPrompt } from "@/components/InstallPrompt";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -64,6 +65,7 @@ function Index() {
               {t("index.cta.have")}
             </Link>
           )}
+          <InstallPrompt />
         </div>
       </section>
 

@@ -111,6 +111,30 @@ function Index() {
         <p className="text-[11px] text-muted-foreground text-center mt-4 tracking-[0.04em]">Your results will appear here</p>
       </section>
 
+      {/* Testimonials */}
+      <section className="mt-6">
+        <p className="text-[11px] uppercase tracking-[0.22em] text-terracotta font-medium mb-4">What people say</p>
+        <div className="grid sm:grid-cols-3 gap-4">
+          {[
+            { quote: "I uploaded a photo of my living room and got three concrete changes. Took an afternoon — looks like a new room.", name: "Sofia K." },
+            { quote: "Finally a tool that understands not everything needs a dramatic overhaul. Subtle changes, big difference.", name: "Emma L." },
+            { quote: "It pointed out exactly what was missing from my outfit. I bought a belt. Problem solved.", name: "Maja H." },
+          ].map((t, i) => (
+            <div key={i} className="p-1.5 rounded-[28px] bg-cream-100 border border-[var(--line)]">
+              <div className="bg-cream-50 rounded-[22px] p-6 shadow-[var(--shadow-card)] flex flex-col h-full">
+                <span className="font-display text-[64px] leading-none text-terracotta select-none">"</span>
+                <p className="font-display text-[18px] font-normal leading-snug text-ink-800 italic mt-1 flex-1">
+                  {t.quote}
+                </p>
+                <div className="mt-6 pt-4 border-t border-[var(--line)]">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-ink-500 font-medium">{t.name}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* How it works */}
       <section className="mt-6 p-1.5 rounded-[28px] bg-cream-100 border border-[var(--line)]">
         <div className="bg-cream-50 rounded-[22px] p-8 shadow-[var(--shadow-card)]">

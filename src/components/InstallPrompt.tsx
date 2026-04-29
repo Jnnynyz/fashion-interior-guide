@@ -20,9 +20,13 @@ export function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showIOSGuide, setShowIOSGuide] = useState(false);
   const [installed, setInstalled] = useState(false);
-  const platform = getPlatform();
+  const [platform, setPlatform] = useState<Platform>("other");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+    setPlatform(getPlatform());
+
     if (isStandalone()) {
       setInstalled(true);
       return;
@@ -33,12 +37,12 @@ export function InstallPrompt() {
       setDeferredPrompt(e);
     };
     window.addEventListener("beforeinstallprompt", handler);
-
     window.addEventListener("appinstalled", () => setInstalled(true));
 
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
+  if (!mounted) return null;
   if (installed) return null;
   if (platform === "other" && !deferredPrompt) return null;
 

@@ -39,13 +39,15 @@ export const Route = createRootRoute({
       { property: "og:description", content: "Upload a photo of an outfit or room and get warm, Scandinavian-inspired styling suggestions in seconds." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:site", content: "@whatsmissing" },
       { name: "twitter:title", content: "What's Missing — Style your outfit & space" },
       { name: "twitter:description", content: "Upload a photo of an outfit or room and get warm, Scandinavian-inspired styling suggestions in seconds." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ea283c1a-18d7-402d-bdeb-83e20624be9a/id-preview-ec0bca1f--ef65cd1b-6ae7-497d-9303-3f36596aa948.lovable.app-1776705034802.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ea283c1a-18d7-402d-bdeb-83e20624be9a/id-preview-ec0bca1f--ef65cd1b-6ae7-497d-9303-3f36596aa948.lovable.app-1776705034802.png" },
     ],
     links: [
+      { rel: "manifest", href: "/manifest.json" },
+      { rel: "apple-touch-icon", href: "/logo.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -70,6 +72,13 @@ function RootShell({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function(){
+            var s = localStorage.getItem('theme');
+            var p = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.setAttribute('data-theme', s ?? (p ? 'dark' : 'light'));
+          })();
+        `}} />
         {children}
         <Scripts />
       </body>

@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Shirt, Home } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 
@@ -62,6 +63,11 @@ function Index() {
             </Link>
           )}
         </div>
+      </section>
+
+      {/* Before/After slider */}
+      <section className="mt-2 mb-10">
+        <BeforeAfterSlider />
       </section>
 
       {/* Category cards */}

@@ -144,16 +144,16 @@ function UploadPage() {
 
         <div className="grid grid-cols-2 gap-3 mt-5">
           <CategoryCard
-            active={category === "interior"}
-            onClick={() => setCategory("interior")}
-            icon={<Home className="h-4 w-4" />}
-            title={t("upload.interior")}
-          />
-          <CategoryCard
             active={category === "outfit"}
             onClick={() => setCategory("outfit")}
             icon={<Shirt className="h-4 w-4" />}
             title={t("upload.outfit")}
+          />
+          <CategoryCard
+            active={category === "interior"}
+            onClick={() => setCategory("interior")}
+            icon={<Home className="h-4 w-4" />}
+            title={t("upload.interior")}
           />
         </div>
 

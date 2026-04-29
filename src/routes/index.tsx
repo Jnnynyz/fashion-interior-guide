@@ -85,12 +85,16 @@ function Index() {
       {/* How it works */}
       <section className="mt-6 p-1.5 rounded-[28px] bg-cream-100 border border-[var(--line)]">
         <div className="bg-cream-50 rounded-[22px] p-8 shadow-[var(--shadow-card)]">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-terracotta font-medium">{t("index.steps.title")}</p>
-          <ol className="mt-6 space-y-5">
+          <p className="text-[11px] uppercase tracking-[0.22em] text-terracotta font-medium">Process</p>
+          <h2 className="font-display text-[32px] font-normal mt-1 leading-tight">{t("index.steps.title")}</h2>
+          <ol className="mt-8 grid sm:grid-cols-3 gap-8 sm:gap-6">
             {[t("index.step.1"), t("index.step.2"), t("index.step.3")].map((s, i) => (
-              <li key={i} className="flex gap-4 items-start">
-                <span className="font-display text-[26px] leading-none text-terracotta w-7 shrink-0">{i + 1}</span>
-                <span className="text-sm text-muted-foreground leading-relaxed pt-1">{s}</span>
+              <li key={i} className="flex flex-col">
+                <span className="font-display text-[56px] leading-none text-terracotta font-normal">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <div className="mt-3 h-px bg-[var(--line)]" />
+                <p className="mt-4 text-sm text-muted-foreground leading-relaxed">{s}</p>
               </li>
             ))}
           </ol>

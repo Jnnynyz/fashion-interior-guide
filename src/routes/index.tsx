@@ -82,6 +82,29 @@ function Index() {
         />
       </section>
 
+      {/* Gallery */}
+      <section className="mt-6">
+        <p className="text-[11px] uppercase tracking-[0.22em] text-terracotta font-medium mb-4">Examples</p>
+        <div className="gallery">
+          {[
+            { featured: true,  bg: "#c97f5b22", accent: "#c97f5b", eyebrow: "Outfit", caption: "Casual elevated" },
+            { featured: false, bg: "#94a58322", accent: "#94a583", eyebrow: "Interior", caption: "Living room, refined" },
+            { featured: false, bg: "#3a2f2522", accent: "#6f6055", eyebrow: "Outfit", caption: "Evening look" },
+            { featured: false, bg: "#e8d4c533", accent: "#c97f5b", eyebrow: "Interior", caption: "Dining area" },
+            { featured: false, bg: "#ddc9ad33", accent: "#6f6055", eyebrow: "Outfit", caption: "Weekend style" },
+          ].map((tile, i) => (
+            <div key={i} className={`g-tile${tile.featured ? " featured" : ""}`} style={{ background: tile.bg, border: "1px solid var(--line)" }}>
+              <div className="g-tile-overlay" />
+              <div className="g-tile-caption">
+                <p className="text-[10px] uppercase tracking-[0.18em] font-medium mb-1" style={{ color: tile.accent }}>{tile.eyebrow}</p>
+                <p className="font-display text-[20px] leading-tight text-cream-50">{tile.caption}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="text-[11px] text-muted-foreground text-center mt-4 tracking-[0.04em]">Your results will appear here</p>
+      </section>
+
       {/* How it works */}
       <section className="mt-6 p-1.5 rounded-[28px] bg-cream-100 border border-[var(--line)]">
         <div className="bg-cream-50 rounded-[22px] p-8 shadow-[var(--shadow-card)]">

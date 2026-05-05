@@ -79,7 +79,7 @@ function Index() {
         <CategoryCard
           to={user ? "/upload" : "/auth"}
           icon={<Shirt className="h-5 w-5" strokeWidth={1.4} />}
-          eyebrow={t("index.feature.outfit.eyebrow") || "Fashion"}
+          eyebrow="Fashion"
           title={t("index.feature.outfit.title")}
           body={t("index.feature.outfit.body")}
         />

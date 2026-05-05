@@ -34,6 +34,20 @@ export function useEntitlement(): Entitlement {
     }
     setLoading(true);
     const env = getPaymentsEnv();
+
+    // Admins get unlimited usage
+    const { data: isAdmin } = await supabase.rpc("has_role", {
+      _user_id: user.id,
+      _role: "admin",
+    });
+    if (isAdmin === true) {
+      setHasSubscription(true);
+      setPlanName("Admin");
+      setCredits(0);
+      setLoading(false);
+      return;
+    }
+
     const { data: sub } = await supabase
       .from("subscriptions")
       .select("product_id, status, current_period_end")

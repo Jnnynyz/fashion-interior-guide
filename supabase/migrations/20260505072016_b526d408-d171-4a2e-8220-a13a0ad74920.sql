@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.redeem_promo_code(uuid, text) FROM authenticated;
